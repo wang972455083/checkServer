@@ -1,0 +1,118 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="Base64.cpp" />
+    <ClCompile Include="BaseCommonFunc.cpp" />
+    <ClCompile Include="DBSession.cpp" />
+    <ClCompile Include="GarbageCollectionService.cpp" />
+    <ClCompile Include="IPFilter.cpp" />
+    <ClCompile Include="LActive.cpp" />
+    <ClCompile Include="LCharge.cpp" />
+    <ClCompile Include="LIni.cpp" />
+    <ClCompile Include="LLog.cpp" />
+    <ClCompile Include="LMsg.cpp" />
+    <ClCompile Include="LNet.cpp" />
+    <ClCompile Include="LRedisClient.cpp" />
+    <ClCompile Include="LRunnable.cpp" />
+    <ClCompile Include="LSocket.cpp" />
+    <ClCompile Include="LTabFile.cpp" />
+    <ClCompile Include="LTime.cpp" />
+    <ClCompile Include="LTool.cpp" />
+    <ClCompile Include="LUser.cpp" />
+    <ClCompile Include="LVideo.cpp" />
+    <ClCompile Include="LVipLog.cpp" />
+    <ClCompile Include="MiniDump.cpp" />
+    <ClCompile Include="redisclient\impl\redisasyncclient.cpp" />
+    <ClCompile Include="redisclient\impl\redisclientimpl.cpp" />
+    <ClCompile Include="redisclient\impl\redisparser.cpp" />
+    <ClCompile Include="redisclient\impl\redissyncclient.cpp" />
+    <ClCompile Include="redisclient\impl\redisvalue.cpp" />
+    <ClCompile Include="RemoteLogThread.cpp" />
+    <ClCompile Include="RLogHttp.cpp" />
+    <ClCompile Include="TCPClient.cpp" />
+    <ClCompile Include="Table\ActiveShopCfg.cpp">
+      <Filter>Table</Filter>
+    </ClCompile>
+    <ClCompile Include="Table\DBC.cpp">
+      <Filter>Table</Filter>
+    </ClCompile>
+    <ClCompile Include="Table\distribution.cpp">
+      <Filter>Table</Filter>
+    </ClCompile>
+    <ClCompile Include="Table\string-util.cpp">
+      <Filter>Table</Filter>
+    </ClCompile>
+    <ClCompile Include="Table\ChessBoardCfg.cpp">
+      <Filter>Table</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Base64.h" />
+    <ClInclude Include="BaseCommonFunc.h" />
+    <ClInclude Include="BlockingQueue.h" />
+    <ClInclude Include="CardDefine.h" />
+    <ClInclude Include="CircularArrayQueue.h" />
+    <ClInclude Include="DBSession.h" />
+    <ClInclude Include="GameDefine.h" />
+    <ClInclude Include="GarbageCollectionService.h" />
+    <ClInclude Include="IPFilter.h" />
+    <ClInclude Include="LActive.h" />
+    <ClInclude Include="LBase.h" />
+    <ClInclude Include="LBuff.h" />
+    <ClInclude Include="LCardsOperType.h" />
+    <ClInclude Include="LCharge.h" />
+    <ClInclude Include="LIni.h" />
+    <ClInclude Include="LLog.h" />
+    <ClInclude Include="LMsg.h" />
+    <ClInclude Include="LMsgS2S.h" />
+    <ClInclude Include="LNet.h" />
+    <ClInclude Include="LRedisClient.h" />
+    <ClInclude Include="LRunnable.h" />
+    <ClInclude Include="LSingleton.h" />
+    <ClInclude Include="LSocket.h" />
+    <ClInclude Include="LTabFile.h" />
+    <ClInclude Include="LTime.h" />
+    <ClInclude Include="LTool.h" />
+    <ClInclude Include="LUser.h" />
+    <ClInclude Include="LVideo.h" />
+    <ClInclude Include="LVipLog.h" />
+    <ClInclude Include="MiniDump.h" />
+    <ClInclude Include="redisclient\config.h" />
+    <ClInclude Include="redisclient\impl\redisclientimpl.h" />
+    <ClInclude Include="redisclient\redisasyncclient.h" />
+    <ClInclude Include="redisclient\redisbuffer.h" />
+    <ClInclude Include="redisclient\redisclient.h" />
+    <ClInclude Include="redisclient\redisparser.h" />
+    <ClInclude Include="redisclient\redissyncclient.h" />
+    <ClInclude Include="redisclient\redisvalue.h" />
+    <ClInclude Include="redisclient\version.h" />
+    <ClInclude Include="RemoteLogThread.h" />
+    <ClInclude Include="Reward.h" />
+    <ClInclude Include="RLogHttp.h" />
+    <ClInclude Include="ScoreItem.h" />
+    <ClInclude Include="TCPClient.h" />
+    <ClInclude Include="Table\ActiveShopCfg.h">
+      <Filter>Table</Filter>
+    </ClInclude>
+    <ClInclude Include="Table\DBC.h">
+      <Filter>Table</Filter>
+    </ClInclude>
+    <ClInclude Include="Table\distribution.h">
+      <Filter>Table</Filter>
+    </ClInclude>
+    <ClInclude Include="Table\string-util.h">
+      <Filter>Table</Filter>
+    </ClInclude>
+    <ClInclude Include="Table\ChessBoardCfg.h">
+      <Filter>Table</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Table">
+      <UniqueIdentifier>{03ca8ba0-3569-420e-b2dd-c198ccff1bd9}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

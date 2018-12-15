@@ -1,0 +1,18 @@
+
+
+
+MODULE_LIBS =   \
+          ./libs/GateUser.o \
+          ./libs/Work.o \
+          ./libs/OutsideNet.o \
+          ./libs/main.o \
+          ./libs/Config.o \
+
+
+
+MODULE_SRC =     \
+          ./GateUser.o \
+          ./Work.o \
+          ./OutsideNet.o \
+          ./main.o \
+          ./Config.o \

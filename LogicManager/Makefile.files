@@ -1,0 +1,24 @@
+
+
+
+MODULE_LIBS =   \
+          ./libs/Config.o \
+          ./libs/ActiveManager.o \
+          ./libs/UserManager.o \
+          ./libs/User.o \
+          ./libs/DeskManager.o \
+          ./libs/Work.o \
+          ./libs/InsideNet.o \
+          ./libs/main.o \
+
+
+
+MODULE_SRC =     \
+          ./Config.o \
+          ./ActiveManager.o \
+          ./UserManager.o \
+          ./User.o \
+          ./DeskManager.o \
+          ./Work.o \
+          ./InsideNet.o \
+          ./main.o \

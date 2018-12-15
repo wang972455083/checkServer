@@ -1,0 +1,16 @@
+
+
+
+MODULE_LIBS =   \
+          ./libs/Work.o\
+          ./libs/OutsideNet.o\
+          ./libs/main.o\
+          ./libs/Config.o\
+
+
+
+MODULE_SRC =     \
+          ./Work.o \
+          ./OutsideNet.o \
+          ./main.o \
+          ./Config.o \

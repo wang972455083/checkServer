@@ -1,0 +1,69 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="Config.cpp" />
+    <ClCompile Include="InsideNet.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="Work.cpp" />
+    <ClCompile Include="algo_min_huns.cpp" />
+    <ClCompile Include="BaseSkill.cpp">
+      <Filter>ChessGame</Filter>
+    </ClCompile>
+    <ClCompile Include="ChessBlock.cpp">
+      <Filter>ChessGame</Filter>
+    </ClCompile>
+    <ClCompile Include="ChessBlockFactory.cpp">
+      <Filter>ChessGame</Filter>
+    </ClCompile>
+    <ClCompile Include="ChessGame.cpp">
+      <Filter>ChessGame</Filter>
+    </ClCompile>
+    <ClCompile Include="ChessManager.cpp">
+      <Filter>ChessGame</Filter>
+    </ClCompile>
+    <ClCompile Include="Point.cpp">
+      <Filter>ChessGame</Filter>
+    </ClCompile>
+    <ClCompile Include="User.cpp" />
+    <ClCompile Include="DeskManager.cpp" />
+    <ClCompile Include="TableManager.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Config.h" />
+    <ClInclude Include="InsideNet.h" />
+    <ClInclude Include="Work.h" />
+    <ClInclude Include="algo_min_huns.h" />
+    <ClInclude Include="Base.h">
+      <Filter>ChessGame</Filter>
+    </ClInclude>
+    <ClInclude Include="BaseSkill.h">
+      <Filter>ChessGame</Filter>
+    </ClInclude>
+    <ClInclude Include="ChessBlock.h">
+      <Filter>ChessGame</Filter>
+    </ClInclude>
+    <ClInclude Include="ChessBlockFactory.h">
+      <Filter>ChessGame</Filter>
+    </ClInclude>
+    <ClInclude Include="ChessGame.h">
+      <Filter>ChessGame</Filter>
+    </ClInclude>
+    <ClInclude Include="ChessManager.h">
+      <Filter>ChessGame</Filter>
+    </ClInclude>
+    <ClInclude Include="Point.h">
+      <Filter>ChessGame</Filter>
+    </ClInclude>
+    <ClInclude Include="SingleBase.h">
+      <Filter>ChessGame</Filter>
+    </ClInclude>
+    <ClInclude Include="User.h" />
+    <ClInclude Include="DeskManager.h" />
+    <ClInclude Include="TableManager.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="ChessGame">
+      <UniqueIdentifier>{119d2f31-23a7-4e82-bf32-3218c2cf0d03}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

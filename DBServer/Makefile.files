@@ -1,0 +1,18 @@
+
+
+
+MODULE_LIBS =   \
+          ./libs/InsideNet.o \
+          ./libs/Work.o \
+          ./libs/Config.o \
+          ./libs/DbServer.o \
+          ./libs/main.o \
+
+
+
+MODULE_SRC =     \
+          ./InsideNet.o \
+          ./Work.o \
+          ./Config.o \
+          ./DbServer.o \
+          ./main.o \

@@ -1,0 +1,171 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{B436FF87-B307-479D-8420-5FBC3735E2D4}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>LBase</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;BUILDING_LIBCURL;HTTP_ONLY;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>../../include;../../include/mysql;../../include/msgpack;../../lib/libcurl;../../lib/openssl;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>4819</DisableSpecificWarnings>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>../../include;../../include/mysql;../../include/msgpack;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>4819</DisableSpecificWarnings>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <None Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Base64.h" />
+    <ClInclude Include="BaseCommonFunc.h" />
+    <ClInclude Include="BlockingQueue.h" />
+    <ClInclude Include="CardDefine.h" />
+    <ClInclude Include="CircularArrayQueue.h" />
+    <ClInclude Include="DBSession.h" />
+    <ClInclude Include="GameDefine.h" />
+    <ClInclude Include="GarbageCollectionService.h" />
+    <ClInclude Include="IPFilter.h" />
+    <ClInclude Include="LActive.h" />
+    <ClInclude Include="LBase.h" />
+    <ClInclude Include="LBuff.h" />
+    <ClInclude Include="LCardsOperType.h" />
+    <ClInclude Include="LCharge.h" />
+    <ClInclude Include="LIni.h" />
+    <ClInclude Include="LLog.h" />
+    <ClInclude Include="LMsg.h" />
+    <ClInclude Include="LMsgS2S.h" />
+    <ClInclude Include="LNet.h" />
+    <ClInclude Include="LRedisClient.h" />
+    <ClInclude Include="LRunnable.h" />
+    <ClInclude Include="LSingleton.h" />
+    <ClInclude Include="LSocket.h" />
+    <ClInclude Include="LTabFile.h" />
+    <ClInclude Include="LTime.h" />
+    <ClInclude Include="LTool.h" />
+    <ClInclude Include="LUser.h" />
+    <ClInclude Include="LVideo.h" />
+    <ClInclude Include="LVipLog.h" />
+    <ClInclude Include="MiniDump.h" />
+    <ClInclude Include="redisclient\config.h" />
+    <ClInclude Include="redisclient\impl\redisclientimpl.h" />
+    <ClInclude Include="redisclient\redisasyncclient.h" />
+    <ClInclude Include="redisclient\redisbuffer.h" />
+    <ClInclude Include="redisclient\redisclient.h" />
+    <ClInclude Include="redisclient\redisparser.h" />
+    <ClInclude Include="redisclient\redissyncclient.h" />
+    <ClInclude Include="redisclient\redisvalue.h" />
+    <ClInclude Include="redisclient\version.h" />
+    <ClInclude Include="RemoteLogThread.h" />
+    <ClInclude Include="Reward.h" />
+    <ClInclude Include="RLogHttp.h" />
+    <ClInclude Include="ScoreItem.h" />
+    <ClInclude Include="Table\ActiveShopCfg.h" />
+    <ClInclude Include="Table\ChessBoardCfg.h" />
+    <ClInclude Include="Table\DBC.h" />
+    <ClInclude Include="Table\distribution.h" />
+    <ClInclude Include="Table\string-util.h" />
+    <ClInclude Include="TCPClient.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Base64.cpp" />
+    <ClCompile Include="BaseCommonFunc.cpp" />
+    <ClCompile Include="DBSession.cpp" />
+    <ClCompile Include="GarbageCollectionService.cpp" />
+    <ClCompile Include="IPFilter.cpp" />
+    <ClCompile Include="LActive.cpp" />
+    <ClCompile Include="LCharge.cpp" />
+    <ClCompile Include="LIni.cpp" />
+    <ClCompile Include="LLog.cpp" />
+    <ClCompile Include="LMsg.cpp" />
+    <ClCompile Include="LNet.cpp" />
+    <ClCompile Include="LRedisClient.cpp" />
+    <ClCompile Include="LRunnable.cpp" />
+    <ClCompile Include="LSocket.cpp" />
+    <ClCompile Include="LTabFile.cpp" />
+    <ClCompile Include="LTime.cpp" />
+    <ClCompile Include="LTool.cpp" />
+    <ClCompile Include="LUser.cpp" />
+    <ClCompile Include="LVideo.cpp" />
+    <ClCompile Include="LVipLog.cpp" />
+    <ClCompile Include="MiniDump.cpp" />
+    <ClCompile Include="redisclient\impl\redisasyncclient.cpp" />
+    <ClCompile Include="redisclient\impl\redisclientimpl.cpp" />
+    <ClCompile Include="redisclient\impl\redisparser.cpp" />
+    <ClCompile Include="redisclient\impl\redissyncclient.cpp" />
+    <ClCompile Include="redisclient\impl\redisvalue.cpp" />
+    <ClCompile Include="RemoteLogThread.cpp" />
+    <ClCompile Include="RLogHttp.cpp" />
+    <ClCompile Include="Table\ActiveShopCfg.cpp" />
+    <ClCompile Include="Table\ChessBoardCfg.cpp" />
+    <ClCompile Include="Table\DBC.cpp" />
+    <ClCompile Include="Table\distribution.cpp" />
+    <ClCompile Include="Table\string-util.cpp" />
+    <ClCompile Include="TCPClient.cpp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

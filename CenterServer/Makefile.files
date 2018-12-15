@@ -1,0 +1,24 @@
+
+
+
+MODULE_LIBS =   \
+          ./libs/Config.o \
+          ./libs/UserManager.o \
+          ./libs/DbServer.o \
+          ./libs/InsideNet.o \
+          ./libs/DUser.o \
+          ./libs/Work.o \
+          ./libs/HttpRequest.o \
+          ./libs/main.o \
+
+
+
+MODULE_SRC =     \
+          ./Config.o \
+          ./UserManager.o \
+          ./DbServer.o \
+          ./InsideNet.o \
+          ./DUser.o \
+          ./Work.o \
+          ./HttpRequest.o \
+          ./main.o \
