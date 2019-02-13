@@ -279,7 +279,7 @@ void Work::HanderUserLogin(LSocketPtr sp,LMsgC2SLogin* msg)
 		user = std::make_shared<DUser>();
 
 		user->m_usert.m_user_id = user_id;
-		user->m_usert.m_name = "xiaoli";
+		user->m_usert.m_name = msg->m_location;
 		user->m_usert.m_sex = 1;
 		user->m_usert.m_money = 100;
 

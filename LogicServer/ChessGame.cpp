@@ -4,7 +4,7 @@
 #include "ChessManager.h"
 #include "Table/ChessBoardCfg.h"
 #include "Work.h"
-#include "DeskManager.h"
+//#include "DeskManager.h"
 
 
 ChessGame::ChessGame()
@@ -30,7 +30,7 @@ void ChessGame::Start(Desk* desk)
 
 void ChessGame::Init()
 {
-	if (m_desk == nullptr)
+	/*if (m_desk == nullptr)
 		return;
 
 	std::vector<LUserPtr> user = m_desk->GetAllUsers();
@@ -59,7 +59,7 @@ void ChessGame::Init()
 	m_Color = int(CHESS_RED);
 	
 
-	InitChessPos();
+	InitChessPos();*/
 }
 
 void ChessGame::InitChessPos()
@@ -240,7 +240,7 @@ bool ChessGame::DestoryBolck(std::shared_ptr<ChessBlock> pBlock)
 
 void ChessGame::GameOver()
 {
-	if (m_desk == nullptr)
+	/*if (m_desk == nullptr)
 		return;
 
 	int winner_id = m_map_fighters[(CHESS_COLOR)m_Color]->m_user_id;
@@ -262,7 +262,7 @@ void ChessGame::GameOver()
 				gWork.SendMessageToUser(gate_server->m_sp, user_id, send);
 			}
 		}
-	}
+	}*/
 }
 
 bool ChessGame::IsHaveBlock(const Point& pos)

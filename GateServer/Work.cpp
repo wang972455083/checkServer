@@ -107,6 +107,7 @@ void Work::Run()
 		}
 		else
 		{
+			LLOG_ERROR("Pop MsgId = %d", msg->m_msgId);
 			HanderMsg(msg);
 			//delete msg;
 			m_gcService.Collect(msg);
@@ -157,6 +158,7 @@ void Work::Tick(LTime& cur)
 
 				HanderUserKick(&kick);
 				LLOG_DEBUG("Out Time Big Than 60 Kick User");*/
+				++it;
 			}
 			else
 			{
@@ -742,32 +744,31 @@ void Work::SendToGameServer(GUserPtr user, LMsg* msg)
 
 void Work::HanderUser2GameServerMsg(LMsgG2GameUserMsg* msg)
 {
-	LMsgG2GameUserMsg* userMsg = (LMsgG2GameUserMsg*)msg;
-	msgpack::unpacked  unpack;
-	msgpack::unpack(&unpack, userMsg->m_dataBuff->Data() + userMsg->m_dataBuff->GetOffset(), userMsg->m_dataBuff->Size() - userMsg->m_dataBuff->GetOffset());
-	msgpack::object obj = unpack.get();
-	cout << obj;
-	int user_id = 0;
-	//必须有，如果没有则报错
-	ReadMapData(obj, "m_user_id", user_id);
-	if (user_id == 0)
-	{
-		LLOG_DEBUG("ERROR: Message do nto have user_id");
-		return;
-	}
-
-
+	
 	GUserPtr user = gGateUserManager.GetUserBySp(msg->m_sp);
 	if (nullptr == user)
 		return;
 
-	if (userMsg->m_userMsgId == MSG_C_2_S_LOGIN)
+	if (msg->m_userMsgId == MSG_C_2_S_LOGIN)
 	{
+		msgpack::unpacked  unpack;
+		msgpack::unpack(&unpack, msg->m_dataBuff->Data() + msg->m_dataBuff->GetOffset(), msg->m_dataBuff->Size() - msg->m_dataBuff->GetOffset());
+		msgpack::object obj = unpack.get();
+		int user_id = 0;
+
+		ReadMapData(obj, "m_user_id", user_id);
+
+		if (user_id == 0)
+		{
+			LLOG_DEBUG("ERROR: Message do nto have user_id");
+			return;
+		}
+		
 		gGateUserManager.Login(user, user_id);
 	}
-	else if (userMsg->m_userMsgId == MSG_C_2_S_TEST)
+	else if (msg->m_userMsgId == MSG_C_2_S_TEST)
 	{
-		LMsg* m_userMsg = LMsgFactory::Instance().CreateMsg(userMsg->m_userMsgId);
+		/*LMsg* m_userMsg = LMsgFactory::Instance().CreateMsg(userMsg->m_userMsgId);
 		if (m_userMsg)
 		{
 			m_userMsg->Read(obj);
@@ -794,25 +795,21 @@ void Work::HanderUser2GameServerMsg(LMsgG2GameUserMsg* msg)
 		msgpack::object  obj = unpack.get();
 		cout << obj;
 
-		msg->m_sp->Send(send.GetSendBuff());
+		msg->m_sp->Send(send.GetSendBuff());*/
 	}
-	
-
-	
-	
-	//SendToGameServer(user, userMsg);
+	SendToGameServer(user, msg);
 }
 
 void Work::HanderGameServer2UserMsg(LMsgGame2GUserMsg* msg)
 {
-	LMsgGame2GUserMsg* userMsg = (LMsgGame2GUserMsg*)msg;
-	int user_id = userMsg->m_user_id;
+	//LMsgGame2GUserMsg* userMsg = (LMsgGame2GUserMsg*)msg;
+	int user_id = msg->m_user_id;
 
 	GUserPtr user = gGateUserManager.GetUserById(user_id);
 	if (nullptr == user)
 		return;
 
-	user->m_sp->Send(userMsg->m_dataBuff);
+	user->m_sp->Send(msg->m_dataBuff);
 }
 
 
@@ -861,44 +858,34 @@ void Work::HanderUser2LogicManagerServerMsg(LMsgG2LMUserMsg* msg)
 	}*/
 
 	//**************************************
+
+	LLOG_ERROR("HanderUser2LogicManagerServerMsg");
 	m_logicManager->Send(msg->GetSendBuff());
 }
 
 void Work::HanderLogicManagerServer2UserMsg(LMsgLM2GUserMsg* msg)
 {
-	LMsgLM2GUserMsg* userMsg = (LMsgLM2GUserMsg*)msg;
-	int user_id = userMsg->m_user_id;
+	int user_id = msg->m_user_id;
 
 	GUserPtr user = gGateUserManager.GetUserById(user_id);
 	if (nullptr == user)
 		return;
 
-	user->m_sp->Send(userMsg->m_dataBuff);
+	user->m_sp->Send(msg->m_dataBuff);
 }
 
 
 void Work::HanderUser2LogicServerMsg(LMsgG2LUserMsg* msg)
 {
-	LMsgG2LUserMsg* userMsg = (LMsgG2LUserMsg*)msg;
-	msgpack::unpacked  unpack;
-	msgpack::unpack(&unpack, userMsg->m_dataBuff->Data() + userMsg->m_dataBuff->GetOffset(), userMsg->m_dataBuff->Size() - userMsg->m_dataBuff->GetOffset());
-	msgpack::object obj = unpack.get();
-	int user_id = 0;
-	//必须有，如果没有则报错
-	ReadMapData(obj, "m_user_id", user_id);
-	if (user_id == 0)
-	{
-		LLOG_DEBUG("ERROR: Message do nto have user_id");
-		return;
-	}
+	
 
-	GUserPtr user = gGateUserManager.GetUserById(user_id);
+	GUserPtr user = gGateUserManager.GetUserBySp(msg->m_sp);
 	if (user)
 	{
 		LogicInfo* logic = GetLogicInfoById(user->m_logicID);
 		if (logic)
 		{
-			logic->m_client->Send(userMsg->m_dataBuff);
+			logic->m_client->Send(msg->GetSendBuff());
 		}
 	}
 }
@@ -919,5 +906,7 @@ void Work::HanderLM2GUserStatusModify(LMsgLM2GUserStatusModify* msg)
 	{
 		user->m_status = msg->m_status;
 		user->m_logicID = msg->m_logic_server_id;
+
+		LLOG_ERROR("HanderLM2GUserStatusModify users");
 	}
 }

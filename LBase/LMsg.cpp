@@ -106,28 +106,10 @@ bool LMsgFactory::Init()
 	RegestMsg(new LMsgC2SLogin());
 	RegestMsg(new LMsgS2CLogin());
 
-	RegestMsg(new LMsgC2SDeskOpt());
-	RegestMsg(new LMsgS2CDeskOpt());
+	//RegestMsg(new LMsgC2SDeskOpt());
+	//RegestMsg(new LMsgS2CDeskOpt());
 
 	RegestMsg(new LMsgC2SNoticeLogin());
-
-
-	RegestMsg(new LMsgC2SReadyOpt());
-	RegestMsg(new LMsgS2CReadyOpt());
-
-	RegestMsg(new LMsgC2SChessMove());
-	RegestMsg(new LMsgS2CChessMove());
-
-	RegestMsg(new LMsgC2SChessAttack());
-	RegestMsg(new LMsgS2CChessAttack());
-
-	RegestMsg(new LMsgC2SChessUpgrade());
-	RegestMsg(new LMsgS2CChessUpgrade());
-
-	RegestMsg(new LMsgS2CChessInfo());
-	RegestMsg(new LMsgS2CChessResult());
-	
-	
 
 	RegestMsg(new LMsgG2ServerLogin());
 	RegestMsg(new LMsgG2LUserMsg());
@@ -155,14 +137,34 @@ bool LMsgFactory::Init()
 	RegestMsg(new LMsgG2LMUserMsg());
 	RegestMsg(new LMsgLM2GUserMsg());
 
-	RegestMsg(new LMsgLM2LDeskOpt());
-	RegestMsg(new LMsgL2LMDeskOpt());
+	//RegestMsg(new LMsgLM2LDeskOpt());
+	//RegestMsg(new LMsgL2LMDeskOpt());
 
 	RegestMsg(new LMsgC2SLMLogin());
 	RegestMsg(new LMsgS2CLMLogin());
 
 	RegestMsg(new LMsgC2STest());
 	RegestMsg(new LMsgS2CTest());
+
+	RegestMsg(new LMsgC2SQuickRoomOpt());
+	RegestMsg(new LMsgS2CQuickRoomOpt());
+
+	RegestMsg(new LMsgS2CQuickRoomResult());
+
+	RegestMsg(new LMsgLM2LMQuckCreateRoom());
+
+	RegestMsg(new LMsgLM2LQuickCreateRoomOpt());
+	RegestMsg(new LMsgL2LMQuickCreateRoomOpt());
+
+	RegestMsg(new LMsgC2SCreateDeskAsk());
+	RegestMsg(new LMsgS2CNoticeCreateDeskAsk());
+	RegestMsg(new LMsgC2SCreateDeskRespon());
+	RegestMsg(new LMsgS2CNoticeCreateDeskResult());
+
+
+
+	RegestMsg(new LMsgLM2GUserStatusModify());
+
 	return true;
 }
 

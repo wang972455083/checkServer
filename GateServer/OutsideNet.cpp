@@ -23,6 +23,7 @@ void OutsideNet::RecvMsgPack(LBuffPtr recv, LSocketPtr s)
 {
 	bool succeed = false;
 	int msgid = MSG_ERROR_MSG;
+	int user_id = 0;
 	
 	try{
 		msgpack::unpacked  unpack;
@@ -30,6 +31,14 @@ void OutsideNet::RecvMsgPack(LBuffPtr recv, LSocketPtr s)
 		msgpack::object obj = unpack.get();
 		ReadMapData(obj, "m_msgId", msgid);
 
+		if (msgid == 3001)
+		{
+			int roomid = 0;
+			ReadMapData(obj, "m_room_id", roomid);
+
+			LLOG_ERROR("m_room_id = %d",roomid);
+		}
+	
 		if (msgid > MSG_ERROR_MSG && msgid < MSG_S_2_C_MAX)//Íæ¼ÒÏûÏ¢
 		{
 			LLOG_ERROR("First msgid = %d, body size = %d", msgid, recv->Size());
@@ -111,14 +120,11 @@ void OutsideNet::CreateMsgIdTable()
 	m_msgIdTable.insert(MSG_C_2_S_LOGIN);
 	m_msgIdTable.insert(MSG_C_2_S_LM_LOGIN);
 	m_msgIdTable.insert(MSG_C_2_S_HEART);
-	m_msgIdTable.insert(MSG_C_2_S_DESK_OPT);
 	m_msgIdTable.insert(MSG_C_2_S_NOTICE_LOGIN);
-	m_msgIdTable.insert(MSG_C_2_S_READY_OPT);
-	m_msgIdTable.insert(MSG_C_2_S_CHESS_MOVE);
-	m_msgIdTable.insert(MSG_C_2_S_CHESS_ATTACK);
-	m_msgIdTable.insert(MSG_C_2_S_CHESS_UPGRADE);
 	m_msgIdTable.insert(MSG_C_2_S_TEST);
-	
+	m_msgIdTable.insert(MSG_C_2_S_QUICK_ROOM_OPT);
+	m_msgIdTable.insert(MSG_C_2_S_CREATE_DESK_ASK);
+	m_msgIdTable.insert(MSG_C_2_S_CREATE_DESK_RESPON);
 	
 }
 

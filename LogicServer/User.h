@@ -1,15 +1,14 @@
 #pragma once
 #include "LBase.h"
 #include "LSingleton.h"
-
-#include <vector>
+#include "Work.h"
 
 
 
 class User
 {
 public:
-	User(int user_id,Lstring name,Lstring head_icon);
+	User(int user_id,Lstring name,Lstring head_icon,int gate_server_id,bool robot);
 	~User();
 public:
 	void	Clear();
@@ -29,12 +28,6 @@ public:
 		m_gate_id = gate_id;
 	}
 
-	//Lint	GetGateServerId();
-	//void	SetGateServerId(Lint gate_id);
-
-	//std::vector<Lint>&	GetInitChessBoard();
-	//void	SetInitChessBoard(std::vector<Lint> init_chess);
-
 	Lstring GetName()
 	{
 		return m_name;
@@ -45,15 +38,42 @@ public:
 		return m_head_icon;
 	}
 
+	Lint GetStar()
+	{
+		return m_star;
+	}
+
+	void SetStar(int star)
+	{
+		m_star = star;
+	}
+
+	Lint GetDeskId()
+	{
+		return m_desk_id;
+	}
+
+	void SetDeskId(int desk_id)
+	{
+		m_desk_id = desk_id;
+	}
+
+	void Send(LMsgSC& msg);
+	
+
 private:
 	Lint	m_user_id;
 	Lint	m_status;
-	std::vector<Lint>	m_init_chess;  //上场的棋子
 	Lint	m_gate_id;
 	Lstring	m_name;
 	Lstring m_head_icon;
-	
+
+	Lint    m_star;
+
+	bool	m_robot;
+	int		m_desk_id;
+
 };
 
-typedef std::shared_ptr<User>	LUserPtr;
+typedef std::shared_ptr<User> LUserPtr;
 

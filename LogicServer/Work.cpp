@@ -8,6 +8,7 @@
 
 #include <openssl/md5.h>
 #include "TableManager.h"
+#include "RoomManager.h"
 
 
 
@@ -227,8 +228,10 @@ void Work::HanderMsg(LMsg* msg)
 	case MSG_S_2_S_KEEP_ALIVE_ACK:
 		HanderKeepAliveAck((LMsgS2SKeepAliveAck*)msg);
 		break;
-	case MSG_LM_2_L_DESK_OPT:
-		HanderDeskOpt((LMsgLM2LDeskOpt*)msg);
+	//case MSG_LM_2_L_DESK_OPT:
+		//HanderDeskOpt((LMsgLM2LDeskOpt*)msg);
+	case MSG_LM_2_L_QUICK_CREATE_ROOM_OPT:
+		HanderQuickCreateRoomOpt((LMsgLM2LQuickCreateRoomOpt*)msg);
 		break;
 	default:
 		break;
@@ -364,17 +367,14 @@ void Work::HanderGateUserMsg(LMsgG2LUserMsg* msg,GateInfo* gate)
 	{
 		switch (msgId)
 		{
-		case MSG_C_2_S_READY_OPT:
-			HanderDeskUserReadyOpt((LMsgC2SReadyOpt*)msg->m_userMsg);
+		case MSG_C_2_S_CREATE_DESK_ASK:
+			HanderCreateDeskAsk((LMsgC2SCreateDeskAsk*)msg->m_userMsg);
 			break;
-		case MSG_C_2_S_CHESS_MOVE:
-			HanderChessMove((LMsgC2SChessMove*)msg->m_userMsg);
+		case MSG_C_2_S_CREATE_DESK_RESPON:
+			HanderCreateDeskRespon((LMsgC2SCreateDeskRespon*)msg->m_userMsg);
 			break;
-		case MSG_C_2_S_CHESS_ATTACK:
-			HanderChessAttack((LMsgC2SChessAttack*)msg->m_userMsg);
-			break;
-		case MSG_C_2_S_CHESS_UPGRADE:
-			HanderChessUpgrade((LMsgC2SChessUpgrade*)msg->m_userMsg);
+		case MSG_C_2_S_SELECT_CARD:
+			HanderSelectCard((LMsgC2SSelectCard*)msg->m_userMsg);
 			break;
 		}
 	}
@@ -439,188 +439,122 @@ void Work::HanderKeepAliveAck(LMsgS2SKeepAliveAck* msg)
 	
 }
 
-void Work::HanderDeskOpt(LMsgLM2LDeskOpt* msg)
+void Work::HanderCreateDeskAsk(LMsgC2SCreateDeskAsk* msg)
 {
-	int user_id = msg->m_user_id;
-	LMsgL2LMDeskOpt send;
-	send.m_user_id = user_id;
-	send.m_type = msg->m_type;
+	int room_id = msg->m_room_id;
+
+	LRoomPtr room = gRoomManager.GetRoomById(room_id);
+	if (room)
+	{
+		
+		LUserPtr ask_user = room->GetRoomUser(msg->m_user_id);
+		if (ask_user == nullptr)
+			return;
+
+		LUserPtr respon_user = room->GetRoomUser(msg->m_opponent_id);
+		if (respon_user == nullptr)
+			return;
+
+		if (ask_user->GetStar() < msg->m_star || respon_user->GetStar() < msg->m_star)
+			return;
+
+		if (ask_user->GetDeskId() || respon_user->GetDeskId())
+			return;
+
+		LMsgS2CNoticeCreateDeskAsk send;
+		send.m_opponent_id = msg->m_user_id;
+		send.m_room_id = room->GetRoomId();
+		send.m_star = msg->m_star;
+
+		respon_user->Send(send);
+	}
+}
+
+void Work::HanderCreateDeskRespon(LMsgC2SCreateDeskRespon* msg)
+{
+	//同意
+	LMsgS2CNoticeCreateDeskResult send;
+	send.m_result = msg->m_result;
+
 	int result = 0;
-	if(msg->m_type == 1)
-	{ 
-		do
-		{
-			int desk_type = msg->m_desk_type;
-			int cost = msg->m_cost;
-
-
-			if (gDeskManager.IsHaveDesk(user_id))
-			{
-				result = 1;
-				break;
-			}
-
-			int desk_id = msg->m_desk_id;
-			if (gDeskManager.GetDeskById(desk_id))
-			{
-				result = 2;
-				break;
-			}
-
-			LDeskPtr desk = gDeskManager.CreateDesk(desk_id);
-			//desk->m_create_user_id = user_id;
-			desk->m_desk_type = msg->m_desk_type;
-			desk->m_cost = msg->m_cost;
-
-			
-
-			LUserPtr user = std::make_shared<User>(msg->m_self.m_user_id, msg->m_self.m_name, msg->m_self.m_head_icon);
-
-			if (!gDeskManager.AddUserToDesk(desk, user))
-			{
-				result = 3;
-				break;
-			}
-
-			if (result == 0)
-			{
-				FillDeskMsg(send, desk);
-			}
-
-		} while (0);
-
-		msg->m_sp->Send(send.GetSendBuff());
-	}
-	//加入
-	else if (msg->m_type == 2)
+	if (msg->m_result == LMsgC2SCreateDeskRespon::RS_AGREE)
 	{
-		do
+		int room_id = msg->m_room_id;
+		LRoomPtr room = gRoomManager.GetRoomById(room_id);
+		if (room)
 		{
-			if (gDeskManager.IsHaveDesk(user_id))
+			LUserPtr user = room->GetRoomUser(msg->m_user_id);
+			if (user == nullptr)
+				return;
+
+			LUserPtr respon_user = room->GetRoomUser(msg->m_opponent_id);
+			if (respon_user == nullptr)
+				return;
+
+			if (user->GetStar() < msg->m_star || respon_user->GetStar() < msg->m_star)
 			{
-				result = 1;
-				break;
+				send.m_result = LMsgS2CNoticeCreateDeskResult::RS_STAR_ERROR;
+				user->Send(send);
+				return;
+			}
+				
+
+			if (user->GetDeskId() || respon_user->GetDeskId())
+			{
+				send.m_result = LMsgS2CNoticeCreateDeskResult::RS_IN_DESK;
+				user->Send(send);
+				return;
 			}
 
-			LDeskPtr desk = gDeskManager.GetDeskById(msg->m_desk_id);
-			if (desk == nullptr)
+			LDeskPtr desk = room->CreateDesk(msg->m_star);
+		
+			if (desk->StartDesk(user, respon_user))
 			{
-				result = 4;
-				break;
+				desk->FillDeskMsg(send.m_desk);
+
+
+				user->Send(send);
+				respon_user->Send(send);
 			}
 
-			LUserPtr user = std::make_shared<User>(msg->m_self.m_user_id, msg->m_self.m_name, msg->m_self.m_head_icon);
-
-			if (!gDeskManager.AddUserToDesk(desk, user))
-			{
-				result = 3;
-				break;
-			}
-
-			send.m_result = result;
-			if (result == 0)
-			{
-				FillDeskMsg(send, desk);
-			}
-		} while (0);
-
-		msg->m_sp->Send(send.GetSendBuff());
-	}
-	else    //退出zhuozi
-	{
-		do
-		{
-			if (!gDeskManager.IsHaveDesk(user_id))
-			{
-				result = 5;
-				break;
-			}
-
-			LDeskPtr desk = gDeskManager.GetDeskById(msg->m_desk_id);
-			if (desk == nullptr)
-			{
-				result = 4;
-				break;
-			}
-
-			
-			gDeskManager.DeleteUserToDesk(desk, user_id);
-
-			bool del_desk = false;
-			if (desk->IsEmpty())
-			{
-				del_desk = gDeskManager.DeleteDesk(desk->m_desk_id);
-			}
-			
-			send.m_result = result;
-			if (result == 0)
-			{
-				send.m_desk_id = msg->m_desk_id;
-				send.m_desk_type = desk->m_desk_type;
-				send.m_cost = desk->m_cost;
-				send.m_del_desk = del_desk;
-			}
-
-		} while (0);
-
-		msg->m_sp->Send(send.GetSendBuff());
+		}
 	}
 }
 
-void Work::HanderDeskUserReadyOpt(LMsgC2SReadyOpt* msg)
+void Work::HanderSelectCard(LMsgC2SSelectCard* msg)
 {
-	int desk_id = msg->m_desk_id;
-	int user_id = msg->m_user_id;
-
-	LDeskPtr desk = gDeskManager.GetDeskById(desk_id);
-	if (desk == nullptr)
-		return;
-
-	LUserPtr user = desk->GetDeskUser(user_id);
-	if (user == nullptr)
-		return;
-
-	GateInfo* gate_server = GetGateInfoBySp(msg->m_sp);
-	if (gate_server == nullptr)
-		return;
-
-	user->SetGateServerId(gate_server->m_id);
-	//准备
-	if (msg->m_type == 0)
+	LRoomPtr room = gRoomManager.GetRoomById(msg->m_room_id);
+	if (room)
 	{
-		user->SetStatus(STATUS_READY);
+		LUserPtr user = room->GetRoomUser(msg->m_user_id);
+		if (user == nullptr)
+			return;
 
-		desk->CheckStart();
+		LDeskPtr desk = room->GetDesk(msg->m_desk_id);
+		if (desk == nullptr)
+			return;
+
+		if (desk->SelectCard(msg->m_user_id, msg->m_card))
+		{
+			LMsgS2CSelectCard send;
+			send.m_oper_user_id = msg->m_user_id;
+			send.m_card = msg->m_card;
+
+			for (int i = 0; i < desk->m_parters.size(); ++i)
+			{
+				LUserPtr send_user = room->GetRoomUser(desk->m_parters[i]->m_user_id);
+				if (user == nullptr)
+					return;
+				
+				send_user->Send(send);
+			}
+
+			room->CheckDeskEnd(desk);
+		}
+
 	}
-	else
-	{
-		user->SetStatus(STATUS_NULL);
-	}
-
-	
-
-	LMsgS2CReadyOpt send;
-	send.m_user_id = msg->m_user_id;
-	send.m_status = user->GetStatus();
-
-	SendMessageToUser(msg->m_sp, user_id, send);
 }
-
-void Work::HanderChessMove(LMsgC2SChessMove* msg)
-{
-	int desk_id = msg->m_desk_id;
-
-	LDeskPtr desk = gDeskManager.GetDeskById(desk_id);
-	if (desk == nullptr)
-		return;
-
-	if (desk->GetDeskStatus() != DS_CHESS)
-		return;
-
-	desk->HanderChessMove(msg);
-
-}
-
+/*
 void Work::HanderChessAttack(LMsgC2SChessAttack* msg)
 {
 	int desk_id = msg->m_desk_id;
@@ -647,7 +581,7 @@ void Work::HanderChessUpgrade(LMsgC2SChessUpgrade* msg)
 		return;
 
 	desk->HanderChessUpgrade(msg);
-}
+}*/
 
 
 void Work::SendMessageToUser(LSocketPtr sp, Lint user_id, LMsg& msg)
@@ -664,7 +598,21 @@ void Work::SendMessageToUser(LSocketPtr sp, Lint user_id, LMsg& msg)
 	}
 }
 
-void Work::FillDeskMsg(LMsgL2LMDeskOpt& send, LDeskPtr desk)
+void Work::SendMessageToUser(int gateId, int user_id, LMsg& msg)
+{
+	GateInfo* info = GetGateInfoById(gateId);
+	if (nullptr != info)
+	{
+		LMsgL2GUserMsg sendMsg;
+		sendMsg.m_user_id = user_id;
+		sendMsg.m_user_msg_id = msg.m_msgId;
+		sendMsg.m_dataBuff = msg.GetSendBuff();
+
+		info->m_sp->Send(sendMsg.GetSendBuff());
+	}
+}
+
+/*void Work::FillDeskMsg(LMsgL2LMDeskOpt& send, LDeskPtr desk)
 {
 	send.m_desk_id = desk->m_desk_id;
 	send.m_desk_type = desk->m_desk_type;
@@ -681,6 +629,59 @@ void Work::FillDeskMsg(LMsgL2LMDeskOpt& send, LDeskPtr desk)
 
 		send.m_users.push_back(msgUser);
 	}
+}*/
+
+
+void Work::HanderQuickCreateRoomOpt(LMsgLM2LQuickCreateRoomOpt* msg)
+{
+	LMsgL2LMQuickCreateRoomOpt send;
+	int result = 0;
+	do
+	{
+		bool  bExist = false;
+		for (int i = 0; i < msg->m_users.size(); ++i)
+		{
+			if (gRoomManager.IsHaveRoom((msg->m_users)[i].m_user_id))
+			{
+				bExist = true;
+				break;
+			}
+		}
+
+		if (bExist)
+		{
+			result = 1;
+			break;
+		}
+		
+
+		int room_id = msg->m_room_id;
+		if (gRoomManager.GetRoomById(room_id))
+		{
+			result = 2;
+			break;
+		}
+
+		LRoomPtr room = gRoomManager.CreateRoom(room_id);
+		
+
+		for (int i = 0; i < msg->m_users.size(); ++i)
+		{
+			MsgUserInfo msgUser = msg->m_users[i];
+			LUserPtr user = std::make_shared<User>(msgUser.m_user_id, msgUser.m_name, msgUser.m_head_icon, msgUser.m_gate_id,msgUser.m_robot);
+
+			gRoomManager.AddUserToRoom(room, user);
+		}
+
+	} while (0);
+
+	//chu cuo
+	if (result)
+	{
+		send.m_result = result;
+		msg->m_sp->Send(send.GetSendBuff());
+	}
+	
 }
 
 

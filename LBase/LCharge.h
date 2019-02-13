@@ -3,14 +3,7 @@
 
 #include "LBuff.h"
 
-//房卡类型
-enum CARD_TYPE
-{
-	CARD_TYPE_1 = 0,//比赛场
-	CARD_TYPE_4 = 1,//4局卡
-	CARD_TYPE_8 = 2,//8局卡
-	CARD_TYPE_16 = 3,//16局卡
-};
+
 
 //enum CARDS_OPER_TYPE
 //{

@@ -10,7 +10,7 @@
 #include "TCPClient.h"
 #include "GarbageCollectionService.h"
 #include "LCardsOperType.h"
-#include "DeskManager.h"
+
 
 class User;
 
@@ -62,15 +62,18 @@ private:
 	void			SendLogicLoginToLM();
 
 public:
-	//void			HanderCreateDesk(LMsgLM2LCreateDesk* msg);
-	void			HanderDeskOpt(LMsgLM2LDeskOpt* msg);
-	void			HanderDeskUserReadyOpt(LMsgC2SReadyOpt* msg);
-	void			HanderChessMove(LMsgC2SChessMove* msg);
-	void			HanderChessAttack(LMsgC2SChessAttack* msg);
-	void			HanderChessUpgrade(LMsgC2SChessUpgrade* msg);
+	void			HanderCreateDeskAsk(LMsgC2SCreateDeskAsk* msg);
+	void			HanderCreateDeskRespon(LMsgC2SCreateDeskRespon* msg);
+	void			HanderSelectCard(LMsgC2SSelectCard* msg);
+	//void			HanderChessMove(LMsgC2SChessMove* msg);
+	//void			HanderChessAttack(LMsgC2SChessAttack* msg);
+	//void			HanderChessUpgrade(LMsgC2SChessUpgrade* msg);
+
+	void			HanderQuickCreateRoomOpt(LMsgLM2LQuickCreateRoomOpt* msg);
 public:
 	void			SendMessageToUser(LSocketPtr sp, Lint user_id, LMsg& msg);
-	void			FillDeskMsg(LMsgL2LMDeskOpt& send, LDeskPtr desk);
+	void			SendMessageToUser(int gateId, int user_id, LMsg& msg);
+	//void			FillDeskMsg(LMsgL2LMDeskOpt& send, LDeskPtr desk);
 private:
 	LTime		m_tickTimer;
 

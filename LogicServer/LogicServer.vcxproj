@@ -87,33 +87,21 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="algo_min_huns.cpp" />
-    <ClCompile Include="BaseSkill.cpp" />
-    <ClCompile Include="ChessBlock.cpp" />
-    <ClCompile Include="ChessBlockFactory.cpp" />
-    <ClCompile Include="ChessGame.cpp" />
-    <ClCompile Include="ChessManager.cpp" />
     <ClCompile Include="Config.cpp" />
-    <ClCompile Include="DeskManager.cpp" />
+    <ClCompile Include="Desk.cpp" />
     <ClCompile Include="InsideNet.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Point.cpp" />
+    <ClCompile Include="RoomManager.cpp" />
     <ClCompile Include="TableManager.cpp" />
     <ClCompile Include="User.cpp" />
     <ClCompile Include="Work.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="algo_min_huns.h" />
-    <ClInclude Include="Base.h" />
-    <ClInclude Include="BaseSkill.h" />
-    <ClInclude Include="ChessBlock.h" />
-    <ClInclude Include="ChessBlockFactory.h" />
-    <ClInclude Include="ChessGame.h" />
-    <ClInclude Include="ChessManager.h" />
     <ClInclude Include="Config.h" />
-    <ClInclude Include="DeskManager.h" />
+    <ClInclude Include="Desk.h" />
     <ClInclude Include="InsideNet.h" />
-    <ClInclude Include="Point.h" />
-    <ClInclude Include="SingleBase.h" />
+    <ClInclude Include="RoomManager.h" />
     <ClInclude Include="TableManager.h" />
     <ClInclude Include="User.h" />
     <ClInclude Include="Work.h" />

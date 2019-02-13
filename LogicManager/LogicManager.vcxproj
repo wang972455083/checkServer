@@ -87,15 +87,19 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Config.cpp" />
-    <ClCompile Include="DeskManager.cpp" />
+    <ClCompile Include="QuickStartManager.cpp" />
+    <ClCompile Include="RoomManager.cpp" />
     <ClCompile Include="InsideNet.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="UserManager.cpp" />
     <ClCompile Include="Work.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Config.h" />
-    <ClInclude Include="DeskManager.h" />
+    <ClInclude Include="QuickStartManager.h" />
+    <ClInclude Include="RoomManager.h" />
     <ClInclude Include="InsideNet.h" />
+    <ClInclude Include="UserManager.h" />
     <ClInclude Include="Work.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -10,7 +10,7 @@
 #include "TCPClient.h"
 #include "GarbageCollectionService.h"
 #include "LCardsOperType.h"
-#include "DeskManager.h"
+#include "RoomManager.h"
 
 class User;
 
@@ -141,17 +141,21 @@ private:
 
 public:
 
-	void			HanderDeskOpt(LMsgC2SDeskOpt* msg);
+	//void			HanderDeskOpt(LMsgC2SDeskOpt* msg);
 	
-	void			HanderDeskOptRespon(LMsgL2LMDeskOpt* msg);
+	//void			HanderDeskOptRespon(LMsgL2LMDeskOpt* msg);
 	
-	void			FillDeskMsg(DeskMsg& send, LMsgL2LMDeskOpt* msg);
+	//void			FillDeskMsg(DeskMsg& send, LMsgL2LMDeskOpt* msg);
+
+	void			HanderC2SQuickRoomOpt(LSocketPtr sp,LMsgC2SQuickRoomOpt* msg);
 
 	void			HanderUserLogin(LSocketPtr sp,LMsgC2SLMLogin* msg);
 
 	LSocketPtr		GetGateSpByUserId(int user_id);
 
 	void			ModifyUserStatus(int user_id, USER_STATUS status, int logic_server_id);
+	void			HanderLM2LMQuickCreateRoom(LMsgLM2LMQuckCreateRoom* msg);
+	void			HanderL2LMQuickCreateRoomOpt(LMsgL2LMQuickCreateRoomOpt* msg);
 
 private:
 	LTime		m_tickTimer;

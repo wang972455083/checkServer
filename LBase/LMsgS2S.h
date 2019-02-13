@@ -164,7 +164,6 @@ struct Season
 //gate 发送玩家消息 到 logicserver
 struct LMsgG2LUserMsg :public LMsg
 {
-	Lint			m_userId;
 	Lint			m_userMsgId;
 	Lstring			m_ip;
 	Lint            m_userDataID; //用户数据库id,用于比赛场托管逻辑处理
@@ -172,7 +171,6 @@ struct LMsgG2LUserMsg :public LMsg
 	LMsg*			m_userMsg;
 
 	LMsgG2LUserMsg() :LMsg(MSG_G_2_L_USER_MSG), m_userMsg(NULL)
-		, m_userId(0)
 		,m_userMsgId(0)
 		, m_userDataID(0)
 	{
@@ -186,19 +184,15 @@ struct LMsgG2LUserMsg :public LMsg
 
 	virtual bool Read(LBuff& buff)
 	{
-		buff.Read(m_userId);
 		buff.Read(m_userMsgId);
 		buff.Read(m_ip);
 		buff.Read(m_userDataID);
 
-		int msgid = MSG_ERROR_MSG;
-
-		try{
+		try {
 			msgpack::unpacked  unpack;
 			msgpack::unpack(&unpack, buff.Data() + buff.GetOffset(), buff.Size() - buff.GetOffset());
 			msgpack::object obj = unpack.get();
 
-			ReadMapData(obj, "m_msgId", msgid);
 			m_userMsg = LMsgFactory::Instance().CreateMsg(m_userMsgId);
 			if (m_userMsg)
 			{
@@ -211,15 +205,14 @@ struct LMsgG2LUserMsg :public LMsg
 		}
 		catch (...)
 		{
-			LLOG_ERROR("MSG_G_2_L_USER_MSG::RecvMsgPack error");
+			LLOG_ERROR("LMsgG2LUserMsg::RecvMsgPack error");
 		}
-		
+
 		return true;
 	}
 
 	virtual bool Write(LBuff& buff)
 	{
-		buff.Write(m_userId);
 		buff.Write(m_userMsgId);
 		buff.Write(m_ip);
 		buff.Write(m_userDataID);
@@ -740,7 +733,6 @@ struct LMsgG2GameUserMsg :public LMsg
 
 struct LMsgG2GameUserMsg :public LMsg
 {
-	
 	Lint			m_userMsgId;
 	Lstring			m_ip;
 	Lint            m_userDataID; //用户数据库id,用于比赛场托管逻辑处理
@@ -761,7 +753,6 @@ struct LMsgG2GameUserMsg :public LMsg
 
 	virtual bool Read(LBuff& buff)
 	{
-		
 		buff.Read(m_userMsgId);
 		buff.Read(m_ip);
 		buff.Read(m_userDataID);
@@ -773,7 +764,6 @@ struct LMsgG2GameUserMsg :public LMsg
 			msgpack::unpack(&unpack, buff.Data() + buff.GetOffset(), buff.Size() - buff.GetOffset());
 			msgpack::object obj = unpack.get();
 
-			ReadMapData(obj, "m_msgId", msgid);
 			m_userMsg = LMsgFactory::Instance().CreateMsg(m_userMsgId);
 			if (m_userMsg)
 			{
@@ -781,12 +771,12 @@ struct LMsgG2GameUserMsg :public LMsg
 			}
 			else
 			{
-				LLOG_ERROR("LMsgG2LUserMsg read msgId not exiest %d", m_userMsgId);
+				LLOG_ERROR("LMsgG2GameUserMsg read msgId not exiest %d", m_userMsgId);
 			}
 		}
 		catch (...)
 		{
-			LLOG_ERROR("MSG_G_2_L_USER_MSG::RecvMsgPack error");
+			LLOG_ERROR("LMsgG2GameUserMsg::RecvMsgPack error");
 		}
 
 		return true;
@@ -794,7 +784,6 @@ struct LMsgG2GameUserMsg :public LMsg
 
 	virtual bool Write(LBuff& buff)
 	{
-		
 		buff.Write(m_userMsgId);
 		buff.Write(m_ip);
 		buff.Write(m_userDataID);
@@ -850,7 +839,6 @@ struct LMsgGame2GUserMsg : public LMsg
 //gate到logicmanager
 struct LMsgG2LMUserMsg :public LMsg
 {
-
 	Lint			m_userMsgId;
 	Lstring			m_ip;
 	Lint            m_userDataID; //用户数据库id,用于比赛场托管逻辑处理
@@ -871,19 +859,15 @@ struct LMsgG2LMUserMsg :public LMsg
 
 	virtual bool Read(LBuff& buff)
 	{
-
 		buff.Read(m_userMsgId);
 		buff.Read(m_ip);
 		buff.Read(m_userDataID);
-
-		int msgid = MSG_ERROR_MSG;
 
 		try {
 			msgpack::unpacked  unpack;
 			msgpack::unpack(&unpack, buff.Data() + buff.GetOffset(), buff.Size() - buff.GetOffset());
 			msgpack::object obj = unpack.get();
 
-			ReadMapData(obj, "m_msgId", msgid);
 			m_userMsg = LMsgFactory::Instance().CreateMsg(m_userMsgId);
 			if (m_userMsg)
 			{
@@ -896,7 +880,7 @@ struct LMsgG2LMUserMsg :public LMsg
 		}
 		catch (...)
 		{
-			LLOG_ERROR("MSG_G_2_L_USER_MSG::RecvMsgPack error");
+			LLOG_ERROR("LMsgG2LMUserMsg::RecvMsgPack error");
 		}
 
 		return true;
@@ -904,7 +888,6 @@ struct LMsgG2LMUserMsg :public LMsg
 
 	virtual bool Write(LBuff& buff)
 	{
-
 		buff.Write(m_userMsgId);
 		buff.Write(m_ip);
 		buff.Write(m_userDataID);
@@ -957,65 +940,141 @@ struct LMsgLM2GUserMsg : public LMsg
 
 //新增
 
-
-
-
-struct LMsgLM2LDeskOpt : public LMsg
+struct MsgUserInfo
 {
-	Lint			m_user_id; 
-	Lint			m_type; // 1创建 2加入桌子  3退出桌子
-	Lint			m_desk_id;
-	Lint			m_desk_type;
-	Lint			m_cost;
+	int m_user_id;
+	Lstring m_name;
+	Lstring m_head_icon;
+	Lint    m_gate_id;
+	bool    m_robot;
+};
 
-	MsgUserInfo		m_self;
+
+struct LMsgLM2LQuickCreateRoomOpt : public LMsg
+{
+	Lint			m_room_id;
+	
+	std::vector<MsgUserInfo>	m_users;
+	int				m_user_cnt;
 
 
-	LMsgLM2LDeskOpt() :LMsg(MSG_LM_2_L_DESK_OPT)
-		, m_user_id(0),m_type(0),m_desk_id(0),m_desk_type(0),m_cost(0)
+	LMsgLM2LQuickCreateRoomOpt() :LMsg(MSG_LM_2_L_QUICK_CREATE_ROOM_OPT)
+		, m_room_id(0), m_user_cnt(0)
 	{
 	}
 
 	virtual bool Read(LBuff& buff)
 	{
+		buff.Read(m_room_id);
 	
-		buff.Read(m_user_id);
-		buff.Read(m_type);
-		buff.Read(m_desk_id);
-		buff.Read(m_desk_type);
-		buff.Read(m_cost);
+		buff.Read(m_user_cnt);
 
-		buff.Read(m_self.m_user_id);
-		buff.Read(m_self.m_name);
-		buff.Read(m_self.m_head_icon);
-		//buff.Read(m_self.m_pos);
+		for (int i = 0; i < m_user_cnt; ++i)
+		{
+			MsgUserInfo user;
+			buff.Read(user.m_user_id);
+			buff.Read(user.m_name);
+			buff.Read(user.m_head_icon);
+			buff.Read(user.m_gate_id);
+			buff.Read(user.m_robot);
+
+			m_users.push_back(user);
+		}
+		
 		
 		return true;
 	}
 
 	virtual bool Write(LBuff& buff)
 	{
-	
-		buff.Write(m_user_id);
-		buff.Write(m_type);
-		buff.Write(m_desk_id);
-		buff.Write(m_desk_type);
-		buff.Write(m_cost);
+		buff.Write(m_room_id);
+		
+		m_user_cnt = m_users.size();
+		buff.Write(m_user_cnt);
 
-		buff.Write(m_self.m_user_id);
-		buff.Write(m_self.m_name);
-		buff.Write(m_self.m_head_icon);
-		//buff.Write(m_self.m_pos);
+		for (int i = 0; i < m_users.size(); ++i)
+		{
+			MsgUserInfo user = m_users[i];
+			buff.Write(user.m_user_id);
+			buff.Write(user.m_name);
+			buff.Write(user.m_head_icon);
+			buff.Write(user.m_gate_id);
+			buff.Write(user.m_robot);
+		}
 		
 		return true;
 	}
 
 	virtual LMsg* Clone()
 	{
-		return new LMsgLM2LDeskOpt();
+		return new LMsgLM2LQuickCreateRoomOpt();
 	}
 };
 
+
+struct LMsgL2LMQuickCreateRoomOpt: public LMsg
+{
+	Lint			m_result; 
+	Lint			m_room_id;
+
+	std::vector<RoomUser>	m_users;
+	int				m_user_cnt;
+
+
+	LMsgL2LMQuickCreateRoomOpt() :LMsg(MSG_L_2_LM_QUICK_CREATE_ROOM_OPT)
+		, m_room_id(0), m_user_cnt(0)
+	{
+	}
+
+	virtual bool Read(LBuff& buff)
+	{
+		buff.Read(m_result);
+		buff.Read(m_room_id);
+
+		buff.Read(m_user_cnt);
+
+		for (int i = 0; i < m_user_cnt; ++i)
+		{
+			RoomUser user;
+			buff.Read(user.m_user_id);
+			buff.Read(user.m_name);
+			buff.Read(user.m_head_icon);
+			buff.Read(user.m_star);
+
+			m_users.push_back(user);
+		}
+
+
+		return true;
+	}
+
+	virtual bool Write(LBuff& buff)
+	{
+		buff.Write(m_result);
+		buff.Write(m_room_id);
+
+		m_user_cnt = m_users.size();
+		buff.Write(m_user_cnt);
+
+		for (int i = 0; i < m_users.size(); ++i)
+		{
+			RoomUser user = m_users[i];
+			buff.Write(user.m_user_id);
+			buff.Write(user.m_name);
+			buff.Write(user.m_head_icon);
+			buff.Write(user.m_star);
+		}
+
+		return true;
+	}
+
+	virtual LMsg* Clone()
+	{
+		return new LMsgL2LMQuickCreateRoomOpt();
+	}
+};
+
+/*
 struct LMsgL2LMDeskOpt : public LMsg
 {
 	Lint			m_result;			//返回结果 :0成功  1角色已经在桌子中了 2,桌子已经存在  3，桌子已经满了加入失败
@@ -1095,7 +1154,7 @@ struct LMsgL2LMDeskOpt : public LMsg
 		return new LMsgL2LMDeskOpt();
 	}
 };
-
+*/
 
 struct LMsgLM2GUserStatusModify : public LMsg
 {
@@ -1136,7 +1195,76 @@ struct LMsgLM2GUserStatusModify : public LMsg
 };
 
 
+struct LMsgLM2LMQuckCreateRoom : public LMsg
+{
 
+	std::vector<int>	m_users;
+	LMsgLM2LMQuckCreateRoom() :LMsg(MSG_LM_2_LM_QUICK_CREATE_ROOM)
+	{
+		m_users.clear();
+	}
+
+	virtual bool Read(LBuff& buff)
+	{
+		return true;
+	}
+
+	virtual bool Write(LBuff& buff)
+	{
+		return true;
+	}
+
+	virtual LMsg* Clone()
+	{
+		return new LMsgLM2LMQuckCreateRoom();
+	}
+};
+
+struct LMsgS2SModifyCoin :public LMsgSC
+{
+	Lint			m_user_id;
+	Lint			m_type;			// 0,增加  1，减少
+	Lint			m_coin;			//金币数
+
+
+	enum 
+	{
+		TYPE_ADD,
+		TYPE_DESC,
+	};
+
+	LMsgS2SModifyCoin() :LMsgSC(MSG_S_2_S_MODIFY_COIN)
+	{
+		m_user_id = 0;
+		m_type = 0;
+		m_coin = 0;
+	}
+
+	virtual bool Read(LBuff& buff)
+	{
+		buff.Read(m_user_id);
+		buff.Read(m_type);
+		buff.Read(m_coin);
+
+
+		return true;
+	}
+
+	virtual bool Write(LBuff& buff)
+	{
+		buff.Write(m_user_id);
+		buff.Write(m_type);
+		buff.Write(m_coin);
+
+
+		return true;
+	}
+
+	virtual LMsg* Clone()
+	{
+		return new LMsgS2SModifyCoin();
+	}
+};
 
 
 #endif
