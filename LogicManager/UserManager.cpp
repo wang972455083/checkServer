@@ -20,16 +20,6 @@ Lint User::GetUserId()
 	return m_user_id;
 }
 
-void User::SetRoomId(int room_id)
-{
-	m_room_id = room_id;
-}
-
-int User::GetRoomId()
-{
-	return m_room_id;
-}
-
 void User::SetUserSp(LSocketPtr sp)
 {
 	m_user_sp = sp;

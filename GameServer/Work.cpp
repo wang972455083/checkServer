@@ -248,6 +248,8 @@ void Work::HanderMsg(LMsg* msg)
 	case MSG_G_2_GAME_USER_MSG:
 		HanderGateUserMsg((LMsgG2GameUserMsg*)msg);
 		break;
+	case MSG_G_2_S_USER_OUT:
+		break;
 	default:
 		LLOG_ERROR("Message Not Handle,Id=%d",msg->m_msgId);
 		break;
@@ -276,15 +278,21 @@ void Work::HanderUserLogin(LSocketPtr sp,LMsgC2SLogin* msg)
 	UserPtr user = gUserManager.GetUserById(user_id);
 	if (nullptr == user)
 	{
-		user = std::make_shared<DUser>();
+		/*user = std::make_shared<DUser>();
 
 		user->m_usert.m_user_id = user_id;
 		user->m_usert.m_name = msg->m_location;
 		user->m_usert.m_sex = 1;
 		user->m_usert.m_money = 100;
 
-		gUserManager.SaveUser(user);
+		gUserManager.SaveUser(user);*/
+
+		user = gUserManager.CreateUser(msg->m_user_id, msg->m_location);
 	}
+
+
+	user->SetOnline(true);
+	user->SetSp(sp);
 
 	LMsgS2CLogin send;
 	send.m_errorCode = 0;
@@ -295,7 +303,7 @@ void Work::HanderUserLogin(LSocketPtr sp,LMsgC2SLogin* msg)
 	send.m_money = user->m_usert.m_money;
 
 
-	msgpack::sbuffer buffer;
+	/*msgpack::sbuffer buffer;
 	msgpack::packer<msgpack::sbuffer> pac(&buffer);
 
 	send.Write(pac);
@@ -321,11 +329,24 @@ void Work::HanderUserLogin(LSocketPtr sp,LMsgC2SLogin* msg)
 	//必须有，如果没有则报错
 	ReadMapData(obj, "m_user_id", test);
 	ReadMapData(obj, "m_money", test);
-
+	*/
 
 
 	SendUserMsg(sp, user_id, send);
 	
+}
+
+void Work::HanderUserLogOut(LMsgG2SUserLogOut* msg)
+{
+	if (nullptr == msg)
+		return;
+
+	UserPtr user = gUserManager.GetUserById(msg->m_user_id);
+	if (user)
+	{
+		user->SetOnline(false);
+		user->SetSp(nullptr);
+	}
 }
 
 void Work::SendUserMsg(LSocketPtr sp,int user_id,LMsg& msg)

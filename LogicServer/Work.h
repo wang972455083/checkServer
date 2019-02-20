@@ -65,11 +65,15 @@ public:
 	void			HanderCreateDeskAsk(LMsgC2SCreateDeskAsk* msg);
 	void			HanderCreateDeskRespon(LMsgC2SCreateDeskRespon* msg);
 	void			HanderSelectCard(LMsgC2SSelectCard* msg);
+	void			HanderQuitRoom(int gate_id,LMsgC2SQuitRoom* msg);
 	//void			HanderChessMove(LMsgC2SChessMove* msg);
 	//void			HanderChessAttack(LMsgC2SChessAttack* msg);
 	//void			HanderChessUpgrade(LMsgC2SChessUpgrade* msg);
 
 	void			HanderQuickCreateRoomOpt(LMsgLM2LQuickCreateRoomOpt* msg);
+	void			HanderAutoSelectCard(LMsgL2LAutoSelectCard* msg);
+	void			HanderLM2LUserLogout(LMsgLM2LUserLogOut* msg);
+	void			HanderLM2LUserLogin(LMsgLM2LUserLogin* msg);
 public:
 	void			SendMessageToUser(LSocketPtr sp, Lint user_id, LMsg& msg);
 	void			SendMessageToUser(int gateId, int user_id, LMsg& msg);

@@ -299,6 +299,15 @@ void Work::HanderMsg(LMsg* msg)
 	case MSG_L_2_LM_QUICK_CREATE_ROOM_OPT:
 		HanderL2LMQuickCreateRoomOpt((LMsgL2LMQuickCreateRoomOpt*)msg);
 		break;
+	case MSG_L_2_LM_QUIT_ROOM:
+		HanderL2LMQuitRoom((LMsgL2LMQuitRoom*)msg);
+		break;
+	case MSG_G_2_S_USER_OUT:
+		HanderUserLogout((LMsgG2SUserLogOut*)msg);
+		break;
+	case MSG_L_2_LM_RECYLE_ROOM:
+		HanderRecyleRoom((LMsgL2LMRecyleRoom*)msg);
+		break;
 	default:
 		LLOG_DEBUG("Unknown message id: %d", msg->m_msgId);
 		break;
@@ -1189,23 +1198,24 @@ void Work::HanderC2SQuickRoomOpt(LSocketPtr sp,LMsgC2SQuickRoomOpt* msg)
 
 	if (msg->m_type == 0)
 	{
-		if (user->GetRoomId() || user->IsQuickStart())
+		if (user->IsInRoom() || user->IsQuickStart())
 			return;
 
 
 		gQuickStart.PushUser(msg->m_user_id);
+		user->SetQuickStartStatus(true);
 			
 		//测试专用
-		for (int i = 0; i < 8; ++i)
+		/*for (int i = 0; i < 8; ++i)
 		{
 			int user_id = 1000 + i;
 
 			gQuickStart.PushUser(user_id);
-		}
+		}*/
 	}
 	else
 	{
-		if (user->GetRoomId() || !user->IsQuickStart())
+		if (user->IsInRoom() || !user->IsQuickStart())
 			return;
 
 		if (gQuickStart.RemoveUser(msg->m_user_id))
@@ -1224,6 +1234,9 @@ void Work::HanderC2SQuickRoomOpt(LSocketPtr sp,LMsgC2SQuickRoomOpt* msg)
 
 void Work::SendMessageToUser(LSocketPtr sp, Lint user_id,LMsg& msg)
 {
+	if (sp == nullptr)
+		return;
+
 	GateInfo* info =	GetGateInfoBySp(sp);
 	if (nullptr != info)
 	{
@@ -1250,40 +1263,57 @@ void Work::HanderUserLogin(LSocketPtr sp, LMsgC2SLMLogin* msg)
 	}
 
 	user->SetUserSp(sp);
+	user->SetOnline(true);
+
+	if (user->IsInRoom())
+	{
+		int room_id = user->GetRoomId();
+		RoomPtr room = gRoomManager.GetRoom(room_id);
+		if (room == nullptr)
+			return;
+
+		LogicInfo* logic = GetLogicInfoById(room->m_logic_server_id);
+		if (logic)
+		{
+			LMsgLM2LUserLogin send;
+			send.m_user_id = msg->m_user_id;
+			send.m_room_id = room_id;
+
+			GateInfo* pGate = GetGateInfoBySp(user->GetUserSp());
+			if (pGate)
+			{
+				send.m_gate_id = pGate->m_id;
+				logic->m_sp->Send(send.GetSendBuff());
+			}
+
+			ModifyUserStatus(user_id, US_ROOM, logic->m_id, user->GetUserSp());
+		}
+	}
+	else
+	{
+		LMsgS2CLMLogin send;
+		send.m_user_id = user_id;
+
+		if (sp)
+		{
+			SendMessageToUser(sp, user_id, send);
+		}
+	}
 	
-
-	LMsgS2CLMLogin send;
-	send.m_user_id = user_id;
-
-	if (sp)
-	{
-		SendMessageToUser(sp, user_id, send);
-	}
 }
 
-LSocketPtr Work::GetGateSpByUserId(int user_id)
-{
-	auto it = m_users_gate_sp.find(user_id);
-	if (it != m_users_gate_sp.end())
-	{
-		return it->second;
-	}
 
-	return nullptr;
-}
-
-void Work::ModifyUserStatus(int user_id, USER_STATUS status, int logic_server_id)
+void Work::ModifyUserStatus(int user_id, USER_STATUS status, int logic_server_id, LSocketPtr sp)
 {
+	if (nullptr == sp)
+		return;
+
 	LMsgLM2GUserStatusModify send;
 	send.m_user_id = user_id;
 	send.m_status = status;
 	send.m_logic_server_id = logic_server_id;
 
-	LSocketPtr sp = GetGateSpByUserId(user_id);
-	if (sp)
-	{
-		SendMessageToUser(sp, user_id, send);
-	}
+	sp->Send(send.GetSendBuff());
 }
 
 void Work::HanderLM2LMQuickCreateRoom(LMsgLM2LMQuckCreateRoom* msg)
@@ -1311,7 +1341,7 @@ void Work::HanderLM2LMQuickCreateRoom(LMsgLM2LMQuckCreateRoom* msg)
 		
 		if (user)
 		{
-			user->SetRoomId(room_id);
+			user->AddRoom(room_id);
 			user->SetQuickStartStatus(false);
 
 
@@ -1366,48 +1396,107 @@ void Work::HanderL2LMQuickCreateRoomOpt(LMsgL2LMQuickCreateRoomOpt* msg)
 		{
 			send.m_room.m_users.push_back(msg->m_users[i]);
 		}
+
+		gRoomManager.CreateRoom(msg->m_room_id, logic_server_id);
+
+
+		for (int i = 0; i < msg->m_users.size(); ++i)
+		{
+			int user_id = msg->m_users[i].m_user_id;
+			LUserPtr user = gUserManager.GetUserById(user_id);
+			if (user == nullptr)
+				continue;
+
+			send.m_user_id = user_id;
+			LSocketPtr sp = user->GetUserSp();
+			if (sp)
+			{
+				SendMessageToUser(sp, user_id, send);
+				ModifyUserStatus(user_id, US_ROOM, logic_server_id,sp);
+			}
+
+		}
+	}
+	else
+	{
+		//失败后操作
+		for (int i = 0; i < msg->m_users.size(); ++i)
+		{
+			int user_id = msg->m_users[i].m_user_id;
+			LUserPtr user = gUserManager.GetUserById(user_id);
+			if (user == nullptr)
+				continue;
+
+			user->QuitRoom();
+		}
+
+		gRoomManager.RecycleRoomID(msg->m_room_id);
 	}
 
 
 
+	
+}
+
+void Work::HanderL2LMQuitRoom(LMsgL2LMQuitRoom* msg)
+{
+	if (nullptr == msg)
+		return;
+
 	for (int i = 0; i < msg->m_users.size(); ++i)
 	{
-		int user_id = msg->m_users[i].m_user_id;
+		int user_id = msg->m_users[i];
+
 		LUserPtr user = gUserManager.GetUserById(user_id);
-		if(user == nullptr)
-			continue;
+		if (user == nullptr)
+			return;
 
-		send.m_user_id = user_id;
-
-	/*	msgpack::sbuffer buffer;
-		msgpack::packer<msgpack::sbuffer> pac(&buffer);
-		send.Write(pac);
-
-		msgpack::unpacked  unpack;
-		msgpack::unpack(&unpack, buffer.data(), buffer.size());
-
-		msgpack::object  obj = unpack.get();
-		cout << obj;*/
-
-		
-
-		
-
-		LMsgLM2GUserStatusModify modify;
-		modify.m_user_id = user_id;
-		modify.m_status = US_ROOM;
-		modify.m_logic_server_id = logic_server_id;
+		user->QuitRoom();
 
 		LSocketPtr sp = user->GetUserSp();
 		if (sp)
 		{
-			sp->Send(modify.GetSendBuff());
-
-			
-
-			SendMessageToUser(sp, user_id, send);
+			ModifyUserStatus(user->GetUserId(), US_CENTER, 0, sp);
 		}
 	}
 }
+
+void Work::HanderUserLogout(LMsgG2SUserLogOut* msg)
+{
+	if (nullptr == msg)
+		return;
+
+	LUserPtr user = gUserManager.GetUserById(msg->m_user_id);
+	if (nullptr == user)
+		return;
+
+	user->SetOnline(false);
+	user->SetUserSp(nullptr);
+
+	if (user->IsInRoom())
+	{
+		int room_id = user->GetRoomId();
+		RoomPtr room = gRoomManager.GetRoom(room_id);
+		if(room == nullptr)
+			return ;
+
+		LogicInfo* logic = GetLogicInfoById(room->m_logic_server_id);
+		if (logic)
+		{
+			LMsgLM2LUserLogOut send;
+			send.m_user_id = msg->m_user_id;
+			send.m_room_id = room_id;
+
+			logic->m_sp->Send(send.GetSendBuff());
+		}
+	}
+}
+
+void Work::HanderRecyleRoom(LMsgL2LMRecyleRoom* msg)
+{
+	gRoomManager.DeleteRoom(msg->m_room_id);
+}
+
+
 
 

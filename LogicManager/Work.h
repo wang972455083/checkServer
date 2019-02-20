@@ -150,13 +150,13 @@ public:
 	void			HanderC2SQuickRoomOpt(LSocketPtr sp,LMsgC2SQuickRoomOpt* msg);
 
 	void			HanderUserLogin(LSocketPtr sp,LMsgC2SLMLogin* msg);
+	void			HanderUserLogout(LMsgG2SUserLogOut* msg);
 
-	LSocketPtr		GetGateSpByUserId(int user_id);
-
-	void			ModifyUserStatus(int user_id, USER_STATUS status, int logic_server_id);
+	void			ModifyUserStatus(int user_id, USER_STATUS status, int logic_server_id, LSocketPtr sp);
 	void			HanderLM2LMQuickCreateRoom(LMsgLM2LMQuckCreateRoom* msg);
 	void			HanderL2LMQuickCreateRoomOpt(LMsgL2LMQuickCreateRoomOpt* msg);
-
+	void			HanderL2LMQuitRoom(LMsgL2LMQuitRoom* msg);
+	void			HanderRecyleRoom(LMsgL2LMRecyleRoom* msg);
 private:
 	LTime		m_tickTimer;
 
@@ -200,9 +200,7 @@ private:
 	//分割線
 	std::map<Lint, GameServerInfo> m_game_server_info;
 
-private:
-	//用于保存user所在的gateserver 
-	std::map<Lint, LSocketPtr>		m_users_gate_sp;
+
 
 };
 

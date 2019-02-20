@@ -300,7 +300,7 @@ void Work::HanderUserKick(LMsgKick* msg)
 	GUserPtr user = gGateUserManager.GetUserBySp(msg->m_sp);
 	if (user)
 	{
-		if(user->m_login)
+		if(user->m_online)
 			SendToLogicUserOut(user);
 
 		gGateUserManager.DelUser(user);
@@ -375,21 +375,21 @@ void Work::ConnectToLogicManager()
 
 void Work::SendToLogicUserOut(GUserPtr user)
 {
-	LMsgG2LUserOutMsg send;
-	send.m_userGateId = user->m_user_id;
+	if (user == nullptr)
+		return;
+
+	LMsgG2SUserLogOut send;
+	send.m_user_id = user->m_user_id;
 	if (m_logicManager)
 	{
 		//通各LogicManager下线
 		m_logicManager->Send(send.GetSendBuff());
 	}
-	if (user->getUserLogicID() > 0)
+	GameServerInfo* server = GetGameServerById(user);
+	if (server != NULL && server->m_client)
 	{
-		LogicInfo* logic = GetLogicInfoById(user->getUserLogicID());
-		if (logic != NULL && logic->m_client)
-		{
-			//通知Logic下线
-			logic->m_client->Send(send.GetSendBuff());
-		}
+		//通知Logic下线
+		server->m_client->Send(send.GetSendBuff());
 	}
 }
 

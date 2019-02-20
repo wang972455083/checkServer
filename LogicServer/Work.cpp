@@ -143,7 +143,7 @@ void Work::Tick(LTime& cur)
 	//1000毫秒循环一次
 	if (cur.MSecs() - m_1SceTick > 1000)
 	{
-		
+		gRoomManager.Tick();
 		m_1SceTick = cur.MSecs();
 	}
 
@@ -233,11 +233,32 @@ void Work::HanderMsg(LMsg* msg)
 	case MSG_LM_2_L_QUICK_CREATE_ROOM_OPT:
 		HanderQuickCreateRoomOpt((LMsgLM2LQuickCreateRoomOpt*)msg);
 		break;
+	case MSG_L_2_L_AUTO_SELECT_CARD:
+		HanderAutoSelectCard((LMsgL2LAutoSelectCard*)msg);
+		break;
+	case MSG_LM_2_L_USER_LOGIN:
+		HanderLM2LUserLogin((LMsgLM2LUserLogin*)msg);
+		break;
+	case MSG_LM_2_L_USER_OUT:
+		HanderLM2LUserLogout((LMsgLM2LUserLogOut*)msg);
+		break;
 	default:
 		break;
 	}
 }
 
+
+void Work::HanderAutoSelectCard(LMsgL2LAutoSelectCard* msg)
+{
+	LRoomPtr room = gRoomManager.GetRoomById(msg->m_room_id);
+	if (room)
+	{
+
+
+		room->HanderAutoSelectCard(msg);
+
+	}
+}
 
 
 void Work::HanderUserKick(LMsgKick* msg)
@@ -250,6 +271,7 @@ void Work::HanderUserKick(LMsgKick* msg)
 
 	HanderGateLogout(msg);
 }
+
 
 
 void Work::HanderClientIn(LMsgIn* msg)
@@ -376,6 +398,9 @@ void Work::HanderGateUserMsg(LMsgG2LUserMsg* msg,GateInfo* gate)
 		case MSG_C_2_S_SELECT_CARD:
 			HanderSelectCard((LMsgC2SSelectCard*)msg->m_userMsg);
 			break;
+		case MSG_C_2_S_QUIT_ROOM:
+			HanderQuitRoom(gate->m_id, (LMsgC2SQuitRoom*)msg->m_userMsg);
+			break;
 		}
 	}
 	else
@@ -460,63 +485,33 @@ void Work::HanderCreateDeskAsk(LMsgC2SCreateDeskAsk* msg)
 
 		if (ask_user->GetDeskId() || respon_user->GetDeskId())
 			return;
+		//如果是机器人或者掉线的人，则自动同意
+		if (respon_user->IsRobot() || !respon_user->IsOnline())
+		{
+			room->AutoCreateDesk(ask_user->GetUserId(), respon_user->GetUserId(), msg->m_star);
 
-		LMsgS2CNoticeCreateDeskAsk send;
-		send.m_opponent_id = msg->m_user_id;
-		send.m_room_id = room->GetRoomId();
-		send.m_star = msg->m_star;
+		}
+		else
+		{
+			LMsgS2CNoticeCreateDeskAsk send;
+			send.m_opponent_id = msg->m_user_id;
+			send.m_room_id = room->GetRoomId();
+			send.m_star = msg->m_star;
 
-		respon_user->Send(send);
+			respon_user->Send(send);
+		}
 	}
 }
 
 void Work::HanderCreateDeskRespon(LMsgC2SCreateDeskRespon* msg)
 {
-	//同意
-	LMsgS2CNoticeCreateDeskResult send;
-	send.m_result = msg->m_result;
-
-	int result = 0;
 	if (msg->m_result == LMsgC2SCreateDeskRespon::RS_AGREE)
 	{
 		int room_id = msg->m_room_id;
 		LRoomPtr room = gRoomManager.GetRoomById(room_id);
 		if (room)
 		{
-			LUserPtr user = room->GetRoomUser(msg->m_user_id);
-			if (user == nullptr)
-				return;
-
-			LUserPtr respon_user = room->GetRoomUser(msg->m_opponent_id);
-			if (respon_user == nullptr)
-				return;
-
-			if (user->GetStar() < msg->m_star || respon_user->GetStar() < msg->m_star)
-			{
-				send.m_result = LMsgS2CNoticeCreateDeskResult::RS_STAR_ERROR;
-				user->Send(send);
-				return;
-			}
-				
-
-			if (user->GetDeskId() || respon_user->GetDeskId())
-			{
-				send.m_result = LMsgS2CNoticeCreateDeskResult::RS_IN_DESK;
-				user->Send(send);
-				return;
-			}
-
-			LDeskPtr desk = room->CreateDesk(msg->m_star);
-		
-			if (desk->StartDesk(user, respon_user))
-			{
-				desk->FillDeskMsg(send.m_desk);
-
-
-				user->Send(send);
-				respon_user->Send(send);
-			}
-
+			room->HanderCreateDeskRespon(msg);
 		}
 	}
 }
@@ -526,30 +521,59 @@ void Work::HanderSelectCard(LMsgC2SSelectCard* msg)
 	LRoomPtr room = gRoomManager.GetRoomById(msg->m_room_id);
 	if (room)
 	{
-		LUserPtr user = room->GetRoomUser(msg->m_user_id);
-		if (user == nullptr)
-			return;
+		
 
-		LDeskPtr desk = room->GetDesk(msg->m_desk_id);
-		if (desk == nullptr)
-			return;
-
-		if (desk->SelectCard(msg->m_user_id, msg->m_card))
+		room->HanderSelectCard(msg);
+		if (room->CheckRoomOver())
 		{
-			LMsgS2CSelectCard send;
-			send.m_oper_user_id = msg->m_user_id;
-			send.m_card = msg->m_card;
-
-			for (int i = 0; i < desk->m_parters.size(); ++i)
+			LMsgL2LMQuitRoom msg_quit_room;
+			for (int i = 0; i < room->GetAllUsers().size(); ++i)
 			{
-				LUserPtr send_user = room->GetRoomUser(desk->m_parters[i]->m_user_id);
-				if (user == nullptr)
-					return;
-				
-				send_user->Send(send);
+				msg_quit_room.m_users.push_back(room->GetAllUsers()[i]->GetUserId());
+			}
+			SendToLogicManager(msg_quit_room);
+
+			LMsgL2LMRecyleRoom send;
+			send.m_room_id = room->GetRoomId();
+			SendToLogicManager(send);
+
+			gRoomManager.DeleteRoom(room->GetRoomId());
+		}
+	}
+}
+
+void Work::HanderQuitRoom(int gate_id,LMsgC2SQuitRoom* msg)
+{
+	if (msg == nullptr)
+		return;
+
+	LRoomPtr room = gRoomManager.GetRoomById(msg->m_room_id);
+	if (room)
+	{
+		if (room->DelUser(msg->m_user_id))
+		{
+		
+			LMsgL2LMQuitRoom lm_send;
+			lm_send.m_users.push_back(msg->m_user_id);
+
+			SendToLogicManager(lm_send);
+
+			if (room->CheckRoomOver())
+			{
+				LMsgL2LMQuitRoom msg_quit_room;
+				for (int i = 0; i < room->GetAllUsers().size(); ++i)
+				{
+					msg_quit_room.m_users.push_back(room->GetAllUsers()[i]->GetUserId());
+				}
+				SendToLogicManager(msg_quit_room);
+
+				LMsgL2LMRecyleRoom send;
+				send.m_room_id = room->GetRoomId();
+				SendToLogicManager(send);
+
+				gRoomManager.DeleteRoom(room->GetRoomId());
 			}
 
-			room->CheckDeskEnd(desk);
 		}
 
 	}
@@ -683,6 +707,44 @@ void Work::HanderQuickCreateRoomOpt(LMsgLM2LQuickCreateRoomOpt* msg)
 	}
 	
 }
+
+void Work::HanderLM2LUserLogout(LMsgLM2LUserLogOut* msg)
+{
+	if (nullptr == msg)
+		return;
+	LRoomPtr room = gRoomManager.GetRoomById(msg->m_room_id);
+	if (room)
+	{
+		LUserPtr user = room->GetRoomUser(msg->m_user_id);
+		if (user)
+		{
+			user->SetOnline(false);
+			user->SetGateServerId(0);
+		}
+	}
+
+}
+
+void Work::HanderLM2LUserLogin(LMsgLM2LUserLogin* msg)
+{
+	if (nullptr == msg)
+		return;
+	LRoomPtr room = gRoomManager.GetRoomById(msg->m_room_id);
+	if (room)
+	{
+		LUserPtr user = room->GetRoomUser(msg->m_user_id);
+		if (user)
+		{
+			user->SetOnline(true);
+			user->SetGateServerId(msg->m_gate_id);
+
+			LMsgS2CRoomInfoWhenRelogin send;
+			room->FillRoomInfo(user->GetUserId(), send.m_room);
+			user->Send(send);
+		}
+	}
+}
+
 
 
 

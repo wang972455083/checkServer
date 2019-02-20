@@ -21,6 +21,7 @@ public:
 	Lint		m_sex;
 	Lstring		m_headImageUrl;
 	Lint		m_money;
+	Lint		m_scores;
 };
 
 #endif

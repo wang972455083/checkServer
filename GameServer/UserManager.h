@@ -18,7 +18,7 @@ public:
 	void				DelUserById(Lint user_id);
 
 
-	Lint				CreateUser(UserPtr user);
+	UserPtr				CreateUser(int user_id,Lstring name);
 
 	void				SaveUser(UserPtr user);
 

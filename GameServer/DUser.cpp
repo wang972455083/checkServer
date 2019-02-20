@@ -2,25 +2,33 @@
 #include "LTime.h"
 
 DUser::DUser()
-	:m_hasCopy(false)
-	,m_lastReqTime(0)
-	,m_logicID(0)
 {
-
+	m_online = true;
 }
 
 DUser::~DUser()
 {
-
+	m_online = false;
+	m_sp = nullptr;
 }
 
-bool DUser::GetCopy()
+
+
+void DUser::SetOnline(bool online)
 {
-	return m_hasCopy;
+	m_online = online;
 }
 
-void DUser::SetCopy(bool copy)
+void DUser::SetSp(LSocketPtr sp)
 {
-	m_hasCopy = copy;
+	m_sp = sp;
 }
+
+
+LSocketPtr DUser::GetSp()
+{
+	return m_sp;
+}
+
+
 

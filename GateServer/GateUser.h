@@ -8,7 +8,7 @@ struct GateUser
 {
 	Lint			m_user_id;	                    //userId
 	LSocketPtr		m_sp;
-	Lint			m_login;
+	bool			m_online;
 	Lint			m_userState;				//玩家当前状态
 	Lint			m_logicID;					//玩家在哪个logic上面
 	Lint			m_game_server_id;			//在哪個gameserver上
@@ -16,7 +16,7 @@ struct GateUser
 	GateUser()
 	{
 		m_user_id = 0;
-		m_login = 0;
+		m_online = false;
 		m_userState = 0;
 		m_logicID = 0;
 		m_game_server_id = 0;

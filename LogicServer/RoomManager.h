@@ -64,20 +64,30 @@ public:
 	void StartGame();
 
 
-	void CheckRoomOver();
+	bool CheckRoomOver();
 	void GameOver();
 	void Broadcast(LMsgSC& msg);
 
 	void CaculStar();
 
 public:
+	void	SendRoomUserModify(LUserPtr user, ROOMUSER_MODIFY type);
+
+public:
 	LDeskPtr			CreateDesk(int star);
 	LDeskPtr			GetDesk(int desk_id);
+	void				DestoryDesk(int desk_id);
 
 	void				CheckDeskEnd(LDeskPtr desk);
 	void				AddUserToDesk(LDeskPtr desk, LUserPtr user);
-	
 
+public:
+	void				AutoCreateDesk(int ask_id, int opponent_id, int star);
+	void				HanderCreateDeskRespon(LMsgC2SCreateDeskRespon* msg);
+	void				HanderSelectCard(LMsgC2SSelectCard* msg);
+	void				HanderAutoSelectCard(LMsgL2LAutoSelectCard* msg);
+public:
+	void				FillRoomInfo(int user_id,RoomMsg& msg);
 private:
 	Lint m_room_id;
 	std::vector<LUserPtr>				m_room_user;
@@ -97,6 +107,9 @@ class RoomManager : public LSingleton<RoomManager>
 public:
 	virtual	bool	Init();
 	virtual	bool	Final();
+
+public:
+	void Tick();
 
 public:
 	LRoomPtr		GetRoomById(Lint room_id);

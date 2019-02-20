@@ -14,8 +14,8 @@ public:
 	~User();
 
 	Lint GetUserId();
-	void SetRoomId(int room_id);
-	Lint GetRoomId();
+	//void SetRoomId(int room_id);
+	//Lint GetRoomId();
 
 	void SetUserSp(LSocketPtr sp);
 	LSocketPtr GetUserSp();
@@ -36,6 +36,34 @@ public:
 		return m_quick_start;
 	}
 
+	void AddRoom(int room_id)
+	{
+		m_room_id = room_id;
+	}
+	void QuitRoom()
+	{
+		m_room_id = 0;
+	}
+
+	bool IsInRoom()
+	{
+		return (m_room_id > 0);
+	}
+
+	int GetRoomId()
+	{
+		return m_room_id;
+	}
+
+	void SetOnline(bool online)
+	{
+		m_online = online;
+	}
+
+	bool IsOnline()
+	{
+		return m_online;
+	}
 private:
 	Lint		m_user_id;
 	Lint		m_room_id;
@@ -45,6 +73,7 @@ private:
 	LSocketPtr	m_user_sp;
 
 	bool		m_quick_start;
+	bool		m_online;
 };
 
 typedef  std::shared_ptr<User>   LUserPtr;

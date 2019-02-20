@@ -144,7 +144,14 @@ enum LMSG_ID
 	MSG_S_2_C_SELECT_CARD			= 3006,		//选择卡牌
 
 	MSG_S_2_C_ROOM_INFO_MODIFY		= 3007,		//房间信息修改
-	MSG_S_2_C_DESK_RESULT		= 3008,		//桌子比试结果
+	MSG_S_2_C_DESK_OVER_RESULT		= 3008,		//桌子比试结果
+
+	MSG_S_2_C_TURN_DESK_POS = 3009,
+	MSG_S_2_C_ROOM_USER_MODIFY = 3010,
+	MSG_C_2_S_QUIT_ROOM = 3011,
+	MSG_S_2_C_QUIT_ROOM = 3012,
+	MSG_S_2_C_GAME_OVER = 3013,
+	MSG_S_2_C_ROOM_INFO_WHEN_RELOGIN = 3014,
 
 	MSG_TO_LOGIC_SERVER_MAX_MSG = 4000,		//以上是转发到LogicServer的
 
@@ -153,6 +160,8 @@ enum LMSG_ID
 	MSG_S_2_C_HEART = 4002, //心跳包
 
 	MSG_S_2_S_MODIFY_COIN = 4003,  //金币修改
+	MSG_L_2_L_AUTO_SELECT_CARD = 4004, //自动选择卡牌
+	MSG_L_2_LM_QUIT_ROOM = 4005,
 
 	
 	MSG_S_2_C_MAX = 4096, //服务器客户端之间最大消息号
@@ -162,13 +171,7 @@ enum LMSG_ID
 	MSG_S_2_S_KEEP_ALIVE = 5000,
 	MSG_S_2_S_KEEP_ALIVE_ACK = 5001,
 	//下面这是服务器与服务器之间的消息交互
-	//////////////////////////////////////////////////////////////////////////
-	//logicManager 跟 center 之间的交互
 
-
-	
-    //////////////////////////////////////////////////////////////////////////
-    //gate 跟 logic 之间的交互
     MSG_G_2_L_LOGIN = 7000, //gate登录logic		由LogicManager转发
    
     MSG_G_2_L_USER_MSG = 8000, //gate转发玩家消息到logic
@@ -176,8 +179,10 @@ enum LMSG_ID
     
     MSG_G_2_L_USER_OUT_MSG = 8002, //gate转发玩家退出消息到logic
     MSG_L_2_G_USER_OUT_MSG = 8003, //logic转发玩家退出消息到gate
-    
-   
+
+	MSG_G_2_S_USER_OUT = 8004,		//玩家掉线
+	MSG_LM_2_L_USER_OUT = 8005,		//玩家掉线
+	MSG_LM_2_L_USER_LOGIN = 8006,		//玩家denglu
     
 	
 	//////////////////////////////////////////////////////////////////////////
@@ -217,7 +222,7 @@ enum LMSG_ID
 	MSG_LM_2_G_USER_STATUS_MODIFY = 20005,//  大厅和房间状态修改
 	MSG_LM_2_LM_QUICK_CREATE_ROOM = 20006,//  创建房间
 
-	
+	MSG_L_2_LM_RECYLE_ROOM = 20007,// 回收房间号
 
 };
 
@@ -747,14 +752,61 @@ public:
 	}
 };
 
+
+struct MsgDeskUser
+{
+
+	MsgDeskUser()
+	{
+		m_user_id = 0;
+		m_select_card = 0;
+		m_tip_card = 0;
+		m_pos = 0;
+	}
+
+
+	int   m_user_id;
+	int   m_select_card;
+	int   m_tip_card;
+	int    m_pos;		//金币数
+
+	MSGPACK_DEFINE(m_user_id, m_select_card, m_tip_card, m_pos);
+
+};
+
+struct MsgDesk
+{
+
+	MsgDesk()
+	{
+		m_desk_id = 0;
+		m_star = 0;
+		m_cur_pos = 0;
+		m_desk_users.clear();
+		m_select_left_time = 0;
+		m_type = 0;
+	}
+
+	int  m_desk_id;
+	int  m_star;
+	int  m_cur_pos;
+	std::vector<MsgDeskUser>	m_desk_users;
+	int	m_select_left_time;	 //选择时间
+	int m_type;
+
+
+	MSGPACK_DEFINE(m_desk_id, m_star, m_cur_pos, m_desk_users, m_select_left_time, m_type);
+};
+
 struct RoomMsg
 {
 	Lint	m_room_id;
 
 	std::vector<RoomUser>	m_users;
 	std::vector<MsgDeskInfo>	m_desk_infos;
+	MsgDesk						m_cur_desk;
 
-	MSGPACK_DEFINE(m_room_id, m_users, m_desk_infos);
+	MSGPACK_DEFINE(m_room_id, m_users, m_desk_infos, m_cur_desk);
 
 public:
 	RoomMsg() :m_room_id(0)
@@ -1145,49 +1197,7 @@ struct LMsgC2SCreateDeskRespon :public LMsgSC
 	}
 };
 
-struct MsgDeskUser
-{
 
-	MsgDeskUser()
-	{
-		m_user_id = 0;
-		m_select_card = 0;
-		m_tip_card = 0;
-		m_pos = 0;
-	}
-
-
-	int   m_user_id;
-	int   m_select_card;
-	int   m_tip_card;
-	int    m_pos;		//金币数
-
-	MSGPACK_DEFINE(m_user_id, m_select_card, m_tip_card, m_pos);
-
-};
-
-struct MsgDesk
-{
-
-	MsgDesk()
-	{
-		m_desk_id = 0;
-		m_star = 0;
-		m_cur_pos = 0;
-		m_desk_users.clear();
-		m_select_left_time = 0;
-		m_type = 0;
-	}
-
-	int  m_desk_id;
-	int  m_star;
-	int  m_cur_pos;
-	std::vector<MsgDeskUser>	m_desk_users;
-	int	m_select_left_time;	 //选择时间
-	int m_type;
-
-	MSGPACK_DEFINE(m_desk_id, m_star, m_cur_pos, m_desk_users, m_select_left_time);
-};
 
 struct LMsgS2CNoticeCreateDeskResult :public LMsgSC
 {
@@ -1280,12 +1290,22 @@ struct LMsgS2CRoomInfoModify :public LMsgSC
 
 struct LMsgC2SSelectCard :public LMsgSC
 {
+	Lint		m_operator_type;  //操作类型 ：0代表选择出的牌  1代表选择提示的牌
 	Lint		m_room_id;
 	Lint		m_desk_id;
 	Lint		m_card;
 
+
+	enum
+	{
+		OT_SELECT_CARD = 0,
+		OT_SELECT_TIP_CARD,
+	};
+
+
 	LMsgC2SSelectCard() :LMsgSC(MSG_C_2_S_SELECT_CARD)
 	{
+		m_operator_type = 0;
 		m_room_id = 0;
 		m_desk_id = 0;
 		m_card = 0;
@@ -1294,6 +1314,7 @@ struct LMsgC2SSelectCard :public LMsgSC
 	virtual bool Read(msgpack::object& obj)
 	{
 		ReadMapData(obj, NAME_TO_STR(m_user_id), m_user_id);
+		ReadMapData(obj, NAME_TO_STR(m_operator_type), m_operator_type);
 		ReadMapData(obj, NAME_TO_STR(m_room_id), m_room_id);
 		ReadMapData(obj, NAME_TO_STR(m_desk_id), m_desk_id);
 		ReadMapData(obj, NAME_TO_STR(m_card), m_card);
@@ -1302,9 +1323,10 @@ struct LMsgC2SSelectCard :public LMsgSC
 
 	virtual bool Write(msgpack::packer<msgpack::sbuffer>& pack)
 	{
-		WriteMap(pack, 5);
+		WriteMap(pack, 6);
 		WriteKeyValue(pack, NAME_TO_STR(m_msgId), m_msgId);
 		WriteKeyValue(pack, NAME_TO_STR(m_user_id), m_user_id);
+		WriteKeyValue(pack, NAME_TO_STR(m_operator_type), m_operator_type);
 		WriteKeyValue(pack, NAME_TO_STR(m_room_id), m_room_id);
 		WriteKeyValue(pack, NAME_TO_STR(m_desk_id), m_desk_id);
 		WriteKeyValue(pack, NAME_TO_STR(m_card), m_card);
@@ -1320,31 +1342,62 @@ struct LMsgC2SSelectCard :public LMsgSC
 
 struct LMsgS2CSelectCard :public LMsgSC
 {
-	Lint			m_oper_user_id;		//操作的uid
+	Lint			m_result;	
+	Lint            m_operator_type;
+	Lint			m_operator_user_id;  //操作的id
+	Lint			m_room_id;
+	Lint			m_desk_id;
+	
 	Lint			m_card;
+
 	LMsgS2CSelectCard() :LMsgSC(MSG_S_2_C_SELECT_CARD)
 	{
-		m_oper_user_id = 0;
+		m_result = 0;
+		m_operator_type = 0;
+		m_operator_user_id = 0;
+		m_room_id = 0;
+		m_desk_id = 0;
 		m_card = 0;
 	}
+
+
+
+	enum
+	{
+		RT_SUCCEED,
+		RT_USER_ERROR,
+		RT_POS_ERROR,
+		RT_CARD_ERROR,
+	};
 
 	virtual bool Read(msgpack::object& obj)
 	{
 		ReadMapData(obj, NAME_TO_STR(m_user_id), m_user_id);
-		ReadMapData(obj, NAME_TO_STR(m_oper_user_id), m_oper_user_id);
+		ReadMapData(obj, NAME_TO_STR(m_result), m_result);
+		ReadMapData(obj, NAME_TO_STR(m_operator_type), m_operator_type);
+		ReadMapData(obj, NAME_TO_STR(m_operator_user_id), m_operator_user_id);
+		ReadMapData(obj, NAME_TO_STR(m_room_id), m_room_id);
+		ReadMapData(obj, NAME_TO_STR(m_desk_id), m_desk_id);
 		ReadMapData(obj, NAME_TO_STR(m_card), m_card);
+		
 
 		return true;
 	}
 
 	virtual bool Write(msgpack::packer<msgpack::sbuffer>& pack)
 	{
-		WriteMap(pack, 4);
+		WriteMap(pack, 8);
 		WriteKeyValue(pack, NAME_TO_STR(m_msgId), m_msgId);
 		WriteKeyValue(pack, NAME_TO_STR(m_user_id), m_user_id);
-		WriteKeyValue(pack, NAME_TO_STR(m_oper_user_id), m_oper_user_id);
-		WriteKeyValue(pack, NAME_TO_STR(m_card), m_card);
+		WriteKeyValue(pack, NAME_TO_STR(m_result), m_result);
+		WriteKeyValue(pack, NAME_TO_STR(m_operator_type), m_operator_type);
 
+		WriteKeyValue(pack, NAME_TO_STR(m_operator_user_id), m_operator_user_id);
+
+		WriteKeyValue(pack, NAME_TO_STR(m_room_id), m_room_id);
+		WriteKeyValue(pack, NAME_TO_STR(m_desk_id), m_desk_id);
+		WriteKeyValue(pack, NAME_TO_STR(m_card), m_card);
+		
 		return true;
 	}
 
@@ -1354,12 +1407,30 @@ struct LMsgS2CSelectCard :public LMsgSC
 	}
 };
 
-struct LMsgS2CDeskResult :public LMsgSC
+
+struct MsgUserResult
+{
+	int  m_user_id;	
+	int  m_select_card;	//选择的牌
+	int  m_stars;		//获得的星星数
+
+	MsgUserResult()
+	{
+		m_user_id = 0;
+		m_select_card = 0;
+		m_stars = 0;
+	}
+
+	MSGPACK_DEFINE(m_user_id, m_select_card, m_stars);
+};
+struct LMsgS2CDeskOverResult :public LMsgSC
 {
 	Lint			m_desk_id;
 	Lint			m_winner;		//0是平局 其他是赢家
+	std::vector<MsgUserResult>	m_results;
+
 	
-	LMsgS2CDeskResult() :LMsgSC(MSG_S_2_C_DESK_RESULT)
+	LMsgS2CDeskOverResult() :LMsgSC(MSG_S_2_C_DESK_OVER_RESULT)
 	{
 		m_winner = 0;
 	}
@@ -1369,25 +1440,262 @@ struct LMsgS2CDeskResult :public LMsgSC
 		ReadMapData(obj, NAME_TO_STR(m_user_id), m_user_id);
 		ReadMapData(obj, NAME_TO_STR(m_desk_id), m_desk_id);
 		ReadMapData(obj, NAME_TO_STR(m_winner), m_winner);
+		ReadMapData(obj, NAME_TO_STR(m_results), m_results);
 		
 		return true;
 	}
 
 	virtual bool Write(msgpack::packer<msgpack::sbuffer>& pack)
 	{
-		WriteMap(pack, 4);
+		WriteMap(pack, 5);
 		WriteKeyValue(pack, NAME_TO_STR(m_msgId), m_msgId);
 		WriteKeyValue(pack, NAME_TO_STR(m_user_id), m_user_id);
 		WriteKeyValue(pack, NAME_TO_STR(m_desk_id), m_desk_id);
 		WriteKeyValue(pack, NAME_TO_STR(m_winner), m_winner);
-		
+		WriteKeyValue(pack, NAME_TO_STR(m_results), m_results);
 
 		return true;
 	}
 
 	virtual LMsg* Clone()
 	{
-		return new LMsgS2CDeskResult();
+		return new LMsgS2CDeskOverResult();
+	}
+};
+
+
+struct LMsgS2CTurnDeskPos:public LMsgSC
+{
+	Lint			m_desk_id;
+	Lint			m_cur_pos;		//0是平局 其他是赢家
+	Lint			m_left_select_time;
+
+	LMsgS2CTurnDeskPos() :LMsgSC(MSG_S_2_C_TURN_DESK_POS)
+	{
+		m_desk_id = 0;
+		m_cur_pos = 0;
+		m_left_select_time = 0;
+	}
+
+	virtual bool Read(msgpack::object& obj)
+	{
+		ReadMapData(obj, NAME_TO_STR(m_user_id), m_user_id);
+		ReadMapData(obj, NAME_TO_STR(m_desk_id), m_desk_id);
+		ReadMapData(obj, NAME_TO_STR(m_cur_pos), m_cur_pos);
+		ReadMapData(obj, NAME_TO_STR(m_left_select_time), m_left_select_time);
+
+		return true;
+	}
+
+	virtual bool Write(msgpack::packer<msgpack::sbuffer>& pack)
+	{
+		WriteMap(pack, 5);
+		WriteKeyValue(pack, NAME_TO_STR(m_msgId), m_msgId);
+		WriteKeyValue(pack, NAME_TO_STR(m_user_id), m_user_id);
+		WriteKeyValue(pack, NAME_TO_STR(m_desk_id), m_desk_id);
+		WriteKeyValue(pack, NAME_TO_STR(m_cur_pos), m_cur_pos);
+		WriteKeyValue(pack, NAME_TO_STR(m_left_select_time), m_left_select_time);
+
+		return true;
+	}
+
+	virtual LMsg* Clone()
+	{
+		return new LMsgS2CTurnDeskPos();
+	}
+};
+
+
+
+struct LMsgS2CRoomUserModify :public LMsgSC
+{
+	int			m_type;
+	int			m_room_id;
+	int			m_modify_user_id;		
+	int			m_stars;	//当前星星数
+	int			m_desk_id;  //桌子id
+
+	LMsgS2CRoomUserModify() :LMsgSC(MSG_S_2_C_ROOM_USER_MODIFY)
+	{
+		m_type = 0;
+		m_room_id = 0;
+		m_modify_user_id = 0;
+		m_stars = 0;
+		m_desk_id = 0;
+	}
+	virtual bool Read(msgpack::object& obj)
+	{
+		ReadMapData(obj, NAME_TO_STR(m_user_id), m_user_id);
+		ReadMapData(obj, NAME_TO_STR(m_type), m_type);
+		ReadMapData(obj, NAME_TO_STR(m_room_id), m_room_id);
+		ReadMapData(obj, NAME_TO_STR(m_modify_user_id), m_modify_user_id);
+		ReadMapData(obj, NAME_TO_STR(m_stars), m_stars);
+		ReadMapData(obj, NAME_TO_STR(m_desk_id), m_desk_id);
+
+		return true;
+	}
+
+	virtual bool Write(msgpack::packer<msgpack::sbuffer>& pack)
+	{
+		WriteMap(pack, 7);
+		WriteKeyValue(pack, NAME_TO_STR(m_msgId), m_msgId);
+		WriteKeyValue(pack, NAME_TO_STR(m_user_id), m_user_id);
+		
+		WriteKeyValue(pack, NAME_TO_STR(m_type), m_type);
+		WriteKeyValue(pack, NAME_TO_STR(m_room_id), m_room_id);
+		WriteKeyValue(pack, NAME_TO_STR(m_modify_user_id), m_modify_user_id);
+		WriteKeyValue(pack, NAME_TO_STR(m_stars), m_stars);
+		WriteKeyValue(pack, NAME_TO_STR(m_desk_id), m_desk_id);
+
+		return true;
+	}
+
+	virtual LMsg* Clone()
+	{
+		return new LMsgS2CRoomUserModify();
+	}
+};
+
+struct LMsgC2SQuitRoom :public LMsgSC
+{
+	int			m_room_id;
+
+	LMsgC2SQuitRoom() :LMsgSC(MSG_C_2_S_QUIT_ROOM)
+	{
+		m_room_id = 0;
+	}
+	virtual bool Read(msgpack::object& obj)
+	{
+		ReadMapData(obj, NAME_TO_STR(m_user_id), m_user_id);
+		ReadMapData(obj, NAME_TO_STR(m_room_id), m_room_id);
+	
+		return true;
+	}
+
+	virtual bool Write(msgpack::packer<msgpack::sbuffer>& pack)
+	{
+		WriteMap(pack, 3);
+		WriteKeyValue(pack, NAME_TO_STR(m_msgId), m_msgId);
+		WriteKeyValue(pack, NAME_TO_STR(m_user_id), m_user_id);
+
+		WriteKeyValue(pack, NAME_TO_STR(m_room_id), m_room_id);
+	
+		return true;
+	}
+
+	virtual LMsg* Clone()
+	{
+		return new LMsgC2SQuitRoom();
+	}
+};
+
+
+struct LMsgS2CQuitRoom :public LMsgSC
+{
+	int			m_result;
+
+	LMsgS2CQuitRoom() :LMsgSC(MSG_S_2_C_QUIT_ROOM)
+	{
+		m_result = 0;
+	}
+	virtual bool Read(msgpack::object& obj)
+	{
+		ReadMapData(obj, NAME_TO_STR(m_user_id), m_user_id);
+		ReadMapData(obj, NAME_TO_STR(m_result), m_result);
+
+		return true;
+	}
+
+	virtual bool Write(msgpack::packer<msgpack::sbuffer>& pack)
+	{
+		WriteMap(pack, 3);
+		WriteKeyValue(pack, NAME_TO_STR(m_msgId), m_msgId);
+		WriteKeyValue(pack, NAME_TO_STR(m_user_id), m_user_id);
+
+		WriteKeyValue(pack, NAME_TO_STR(m_result), m_result);
+
+		return true;
+	}
+
+	virtual LMsg* Clone()
+	{
+		return new LMsgS2CQuitRoom();
+	}
+};
+
+
+struct LMsgS2CGameOver :public LMsgSC
+{
+	int			m_room_id;
+	int			m_winner;
+	int			m_stars;
+
+	LMsgS2CGameOver() :LMsgSC(MSG_S_2_C_GAME_OVER)
+	{
+		m_room_id = 0;
+		m_winner = 0;
+		m_stars = 0;
+	}
+	virtual bool Read(msgpack::object& obj)
+	{
+		ReadMapData(obj, NAME_TO_STR(m_user_id), m_user_id);
+		ReadMapData(obj, NAME_TO_STR(m_room_id), m_room_id);
+		ReadMapData(obj, NAME_TO_STR(m_winner), m_winner);
+		ReadMapData(obj, NAME_TO_STR(m_stars), m_stars);
+
+		return true;
+	}
+
+	virtual bool Write(msgpack::packer<msgpack::sbuffer>& pack)
+	{
+		WriteMap(pack, 5);
+		WriteKeyValue(pack, NAME_TO_STR(m_msgId), m_msgId);
+		WriteKeyValue(pack, NAME_TO_STR(m_user_id), m_user_id);
+
+		WriteKeyValue(pack, NAME_TO_STR(m_room_id), m_room_id);
+		WriteKeyValue(pack, NAME_TO_STR(m_winner), m_winner);
+		WriteKeyValue(pack, NAME_TO_STR(m_stars), m_stars);
+
+		return true;
+	}
+
+	virtual LMsg* Clone()
+	{
+		return new LMsgS2CGameOver();
+	}
+};
+
+
+struct LMsgS2CRoomInfoWhenRelogin :public LMsgSC
+{
+	RoomMsg		m_room;
+
+	LMsgS2CRoomInfoWhenRelogin() :LMsgSC(MSG_S_2_C_ROOM_INFO_WHEN_RELOGIN)
+	{
+	}
+	virtual bool Read(msgpack::object& obj)
+	{
+		ReadMapData(obj, NAME_TO_STR(m_user_id), m_user_id);
+		ReadMapData(obj, NAME_TO_STR(m_room), m_room);
+
+		return true;
+	}
+
+	virtual bool Write(msgpack::packer<msgpack::sbuffer>& pack)
+	{
+		WriteMap(pack, 3);
+		WriteKeyValue(pack, NAME_TO_STR(m_msgId), m_msgId);
+		WriteKeyValue(pack, NAME_TO_STR(m_user_id), m_user_id);
+
+		WriteKeyValue(pack, NAME_TO_STR(m_room), m_room);
+	
+
+		return true;
+	}
+
+	virtual LMsg* Clone()
+	{
+		return new LMsgS2CRoomInfoWhenRelogin();
 	}
 };
 

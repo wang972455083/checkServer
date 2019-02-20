@@ -42,14 +42,39 @@ bool Room::AddUser(LUserPtr user)
 
 bool Room::DelUser(Lint user_id)
 {
-	for (auto it = m_room_user.begin(); it != m_room_user.end(); it++)
+	LUserPtr user = nullptr;
+
+	for (auto it = m_room_user.begin(); it != m_room_user.end();)
 	{
 		if ((*it)->GetUserId() == user_id)
 		{
-			it = m_room_user.erase(it);
+			user = *it;
 
-			return true;
-		}	
+			if (user->GetDeskId())
+				return  false;
+			else
+			{
+				it = m_room_user.erase(it);
+				break;
+			}
+		}
+		else
+		{
+			++it;
+		}
+	}
+
+	if (user)
+	{
+		LMsgS2CQuitRoom send;
+		send.m_result = 0;
+		send.m_user_id = user->GetUserId();
+		user->Send(send);
+
+		SendRoomUserModify(user, MODIFY_DEL_USER);
+		
+
+		return true;
 	}
 
 	return false;
@@ -65,6 +90,15 @@ LUserPtr Room::GetRoomUser(Lint user_id)
 
 	return nullptr;
 }
+
+void Room::Tick()
+{
+	for (auto it = m_runing_desks.begin(); it != m_runing_desks.end(); ++it)
+	{
+		it->second->Tick();
+	}
+}
+
 
 void Room::CheckStart()
 {
@@ -98,23 +132,38 @@ void Room::StartGame()
 
 }
 
-void Room::CheckRoomOver()
+bool Room::CheckRoomOver()
 {
-	int not_zero_cnt = 0;
+	LUserPtr win_user = nullptr;
+	int count = 0;
 	for (int i = 0; i < m_room_user.size(); ++i)
 	{
 		if (m_room_user[i]->GetStar())
 		{
-			not_zero_cnt++;
-			if (not_zero_cnt > 1)
+			win_user = m_room_user[i];
+			count++;
+			if (count > 1)
 			{
-				return ;
+				return false;
 			}
 		}
 	}
+	//赢家
+	if (count == 1)
+	{
+		if (win_user)
+		{
+			LMsgS2CGameOver send;
+			send.m_room_id = m_room_id;
+			send.m_winner = win_user->GetUserId();
+			send.m_stars = win_user->GetStar();
 
+			Broadcast(send);
 
-	
+			return true;
+		}
+	}
+	return false;
 }
 
 void Room::GameOver()
@@ -141,6 +190,22 @@ void Room::Broadcast(LMsgSC& msg)
 	}	
 }
 
+void Room::SendRoomUserModify(LUserPtr user, ROOMUSER_MODIFY type)
+{
+	if (user == nullptr)
+		return;
+
+	LMsgS2CRoomUserModify send;
+	send.m_type = type;
+	send.m_room_id = m_room_id;
+	send.m_modify_user_id = user->GetUserId();
+	send.m_stars = user->GetStar();
+	send.m_desk_id = user->GetDeskId();
+
+	Broadcast(send);
+	
+}
+
 void Room::CaculStar()
 {
 
@@ -154,8 +219,11 @@ LDeskPtr	Room::CreateDesk(int star)
 
 	m_new_desk_id++;
 	LDeskPtr desk = std::make_shared<Desk>();
+	desk->SetRoom(this);
 	desk->m_desk_id = m_new_desk_id;
 	desk->m_star = star;
+
+	m_runing_desks[desk->m_desk_id] = desk;
 
 	return desk;
 }
@@ -176,88 +244,202 @@ void Room::CheckDeskEnd(LDeskPtr desk)
 	if (desk == nullptr)
 		return;
 
-	/*if (desk->IsEnd())
+	if (desk->IsEnd())
 	{
-
-		int winner = desk->GetWinner();
-		for (int i = 0; i < desk->m_parters.size(); i++)
+		std::map<int, int> map_user_stars;
+		if (desk->EndDesk(map_user_stars))
 		{
-			int user_id = desk->m_parters[i].m_user_id;
-			LUserPtr user = GetRoomUser(user_id);
-			if (user == nullptr)
-				return;
 
-			if (user_id == winner)
+			for (auto iter = map_user_stars.begin(); iter != map_user_stars.end(); ++iter)
 			{
-				user->SetStar(user->GetStar() + desk->m_star);
-			}
-			else
-			{
-				user->SetStar(user->GetStar() - desk->m_star);
-			}
 
-			LMsgS2CDeskResult send;
-			send.m_desk_id = desk->m_desk_id;
-			send.m_winner = winner;
-			
-			user->Send(send);
-		}
-		m_desks_record.push_back(desk);
-
-		//不是平局数据有改动
-		if (winner)
-		{
-			LMsgS2CRoomInfoModify modify;
-			for (int i = 0; i < desk->m_parters.size(); i++)
-			{
-				int user_id = desk->m_parters[i].m_user_id;
-				std::shared_ptr<User> user = GetRoomUser(user_id);
+				LUserPtr user = GetRoomUser(iter->first);
 				if (user == nullptr)
-					return;
+					continue;
 
-				RoomUser msgUser;
-				msgUser.m_user_id = user->GetUserId();
-				msgUser.m_name = user->GetName();
-				msgUser.m_head_icon = user->GetHeadIcon();
-				msgUser.m_star = user->GetStar();
-				msgUser.m_desk_id = user->GetDeskId();
+				user->SetStar(user->GetStar() + iter->second);
+				user->SetDeskId(0);
 
-				modify.m_users.push_back(msgUser);
-
-
-				MsgParter msgPart;
-				msgPart.m_user_id = desk->m_parters[i].m_user_id;
-				msgPart.m_card = desk->m_parters[i].m_card;
-				modify.m_desk_info.m_parters.push_back(msgPart);
+				SendRoomUserModify(user, MODIFY_UPDATE_USER);
 			}
 
-			modify.m_desk_info.m_star = desk->m_star;
-			
-			Broadcast(modify);
-		}
-		
+			DestoryDesk(desk->m_desk_id);
 
-		auto iter = m_runing_desks.find(desk->m_desk_id);
-		if (iter != m_runing_desks.end())
-		{
-			m_runing_desks.erase(iter);
+			CheckRoomOver();
 		}
 
-		if (winner)
-		{
-
-		}
-	}*/
+	}
 }
+
+
 
 void Room::AddUserToDesk(LDeskPtr desk, LUserPtr user)
 {
-	//Partener part;
-	//part.m_user_id = user->GetUserId();
+	if (desk == nullptr || user == nullptr)
+		return;
 
-	//desk->m_parters.push_back(part);
+	if (user->GetDeskId())
+		return;
+	
+	if (desk->AddUser(user->GetUserId(), user->IsRobot()))
+	{
+		user->SetDeskId(desk->m_desk_id);
+		SendRoomUserModify(user, MODIFY_UPDATE_USER);
+
+		if (desk->IsFull())
+		{
+			desk->StartDesk();
+		}
+	}
+
+	return;
 }
 
+void Room::AutoCreateDesk(int ask_id, int opponent_id, int star)
+{
+	LUserPtr user = GetRoomUser(ask_id);
+	if (user == nullptr)
+		return;
+
+	LUserPtr respon_user = GetRoomUser(opponent_id);
+	if (respon_user == nullptr)
+		return;
+
+	if (user->GetStar() < star || respon_user->GetStar() < star)
+	{
+		LMsgS2CNoticeCreateDeskResult send;
+		send.m_result = LMsgS2CNoticeCreateDeskResult::RS_STAR_ERROR;
+		user->Send(send);
+		return;
+	}
+
+
+	if (user->GetDeskId() || respon_user->GetDeskId())
+	{
+		LMsgS2CNoticeCreateDeskResult send;
+		send.m_result = LMsgS2CNoticeCreateDeskResult::RS_IN_DESK;
+		user->Send(send);
+		return;
+	}
+
+	LDeskPtr desk = CreateDesk(star);
+	if (desk == nullptr)
+		return;
+
+	AddUserToDesk(desk, user);
+	AddUserToDesk(desk, respon_user);
+}
+
+void Room::HanderCreateDeskRespon(LMsgC2SCreateDeskRespon* msg)
+{
+	//同意
+	
+	LUserPtr user = GetRoomUser(msg->m_user_id);
+	if (user == nullptr)
+		return;
+
+	LUserPtr respon_user = GetRoomUser(msg->m_opponent_id);
+	if (respon_user == nullptr)
+		return;
+
+	if (user->GetStar() < msg->m_star || respon_user->GetStar() < msg->m_star)
+	{
+		LMsgS2CNoticeCreateDeskResult send;
+		send.m_result = LMsgS2CNoticeCreateDeskResult::RS_STAR_ERROR;
+		user->Send(send);
+		return;
+	}
+
+
+	if (user->GetDeskId() || respon_user->GetDeskId())
+	{
+		LMsgS2CNoticeCreateDeskResult send;
+		send.m_result = LMsgS2CNoticeCreateDeskResult::RS_IN_DESK;
+		user->Send(send);
+		return;
+	}
+
+	LDeskPtr desk = CreateDesk(msg->m_star);
+	if (desk == nullptr)
+		return;
+
+	//desk->StartDesk(user, respon_user);
+	AddUserToDesk(desk, user);
+	AddUserToDesk(desk, respon_user);
+
+}
+
+void Room::HanderSelectCard(LMsgC2SSelectCard* msg)
+{
+	LUserPtr user = GetRoomUser(msg->m_user_id);
+	if (user == nullptr)
+		return;
+
+	LDeskPtr desk = GetDesk(msg->m_desk_id);
+	if (desk == nullptr)
+		return;
+
+
+	if (desk->SelectCard(msg->m_user_id,msg->m_card))
+	{
+		CheckDeskEnd(desk);
+	}
+}
+
+
+void Room::HanderAutoSelectCard(LMsgL2LAutoSelectCard* msg)
+{
+	LUserPtr user = GetRoomUser(msg->m_user_id);
+	if (user == nullptr)
+		return;
+
+	LDeskPtr desk = GetDesk(msg->m_desk_id);
+	if (desk == nullptr)
+		return;
+
+
+	if (desk->SelectCard(msg->m_user_id,msg->m_card))
+	{
+		CheckDeskEnd(desk);
+	}
+}
+
+
+void Room::DestoryDesk(int desk_id)
+{
+	auto iter = m_runing_desks.find(desk_id);
+	if (iter != m_runing_desks.end())
+	{
+		m_runing_desks.erase(iter);
+	}
+}
+
+void Room::FillRoomInfo(int user_id, RoomMsg& msg)
+{
+	LUserPtr user = GetRoomUser(user_id);
+	if (nullptr == user)
+		return;
+
+	msg.m_room_id = m_room_id;
+	for (int i = 0; i < m_room_user.size(); ++i)
+	{
+		LUserPtr user = m_room_user[i];
+		RoomUser msg_user;
+		msg_user.m_user_id = user->GetUserId();
+		msg_user.m_name = user->GetName();
+		msg_user.m_head_icon = user->GetHeadIcon();
+		msg_user.m_star = user->GetStar();
+		msg_user.m_desk_id = user->GetDeskId();
+
+		msg.m_users.push_back(msg_user);
+	}
+
+	LDeskPtr desk = GetDesk(user->GetDeskId());
+	if (desk)
+	{
+		desk->FillDeskMsg(msg.m_cur_desk);
+	}
+}
 
 bool RoomManager::Init()
 {
@@ -269,6 +451,13 @@ bool RoomManager::Final()
 	return true;
 }
 
+void RoomManager::Tick()
+{
+	for (auto iter = m_map_rooms.begin(); iter != m_map_rooms.end(); ++iter)
+	{
+		iter->second->Tick();
+	}
+}
 
 LRoomPtr RoomManager::GetRoomById(Lint room_id)
 {

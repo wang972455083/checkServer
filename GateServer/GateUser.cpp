@@ -54,6 +54,16 @@ void GateUserManager::DelUser(GUserPtr user)
 
 	int user_id = user->getUserId();
 	LSocketPtr sp = user->m_sp;
+	if (sp)
+	{
+		auto it = m_gateUserSpMap.find(sp);
+		if (it != m_gateUserSpMap.end())
+		{
+			m_gateUserSpMap.erase(it);
+		}
+	}
+
+	
 	auto iter1 = m_gateUserIdMap.find(user_id);
 	
 	if (iter1!=m_gateUserIdMap.end())
@@ -66,9 +76,8 @@ GUserPtr GateUserManager::CreateUser(LSocketPtr sp)
 {
 	GUserPtr user = std::make_shared<GateUser>();
 	
-	//user->m_user_id = user_id;
 	user->m_sp = sp;
-	user->m_login = 0;
+	user->m_online = true;
 
 	AddUserToSpMap(user);
 	LLOG_DEBUG("GateUserManager::CreateUser AddUser ");

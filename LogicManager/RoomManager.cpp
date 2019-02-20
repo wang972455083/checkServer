@@ -20,7 +20,6 @@ bool RoomManager::Init()
 	{
 		Lint seed1 = L_Rand(0, nSize - 1);
 		m_FreeRoomList.push(RoomVector[seed1]);
-		m_sharevideoId.push(RoomVector[seed1]);
 		RoomVector[seed1] = RoomVector[nSize - 1];
 		nSize --;
 	}
@@ -58,47 +57,37 @@ Lint RoomManager::GetFreeRoomId()
 
 Lint RoomManager::getServerIDbyRoomID(Lint nRoomID)
 {
-	/*auto Room = m_RoomLogicID.find(nRoomID);
-	if (Room != m_RoomLogicID.end())
+	auto it = m_Rooms.find(nRoomID);
+	if (it != m_Rooms.end())
 	{
-		return Room->second;
-	}*/
+		return it->second->m_logic_server_id;
+	}
 	return 0;
 }
 
 void RoomManager::RecycleDumpServer(Lint nLogicID)
 {
-	/*auto Room = m_RoomLogicID.begin();
-	for (; Room != m_RoomLogicID.end();)
+	for (auto it = m_Rooms.begin(); it != m_Rooms.end(); )
 	{
-		if (Room->second == nLogicID)
+		if (it->second->m_logic_server_id == nLogicID)
 		{
-			m_FreeRoomList.push(Room->first);
-			Room = m_RoomLogicID.erase(Room);
+			RecycleRoomID(it->first);
+
+			it = m_Rooms.erase(it);
 		}
 		else
 		{
-			++ Room;
+			++it;
 		}
-	}*/
-}
-
-Lint	RoomManager::GetUserRoomID(Lint user_id)
-{
-	int Room_id = 0;
-	auto it = m_user_Room.find(user_id);
-	if (it != m_user_Room.end())
-	{
-		Room_id = it->second;
 	}
-
-	return Room_id;
 }
 
-RoomPtr RoomManager::CreateRoom(Lint room_id)
+
+RoomPtr RoomManager::CreateRoom(Lint room_id,int logic_server_id)
 {
 	RoomPtr room = std::make_shared<Room>();
 	room->m_room_id = room_id;
+	room->m_logic_server_id = logic_server_id;
 	m_Rooms[room_id] = room;
 	
 	return room;
@@ -136,19 +125,6 @@ void RoomManager::RecycleRoomID(Lint Room_id)
 	m_FreeRoomList.push(Room_id);
 }
 
-void RoomManager::AddUserToRoom(Lint Room_id, Lint user_id)
-{
-	m_user_Room[user_id] = Room_id;
-}
-
-void RoomManager::DelUserToRoom(Lint Room_id, Lint user_id)
-{
-	auto it = m_user_Room.find(user_id);
-	if(it != m_user_Room.end())
-	{
-		m_user_Room.erase(it);
-	}
-}
 
 
 

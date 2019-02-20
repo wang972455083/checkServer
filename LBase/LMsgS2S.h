@@ -1220,7 +1220,7 @@ struct LMsgLM2LMQuckCreateRoom : public LMsg
 	}
 };
 
-struct LMsgS2SModifyCoin :public LMsgSC
+struct LMsgS2SModifyCoin :public LMsg
 {
 	Lint			m_user_id;
 	Lint			m_type;			// 0,‘ˆº”  1£¨ºı…Ÿ
@@ -1233,7 +1233,7 @@ struct LMsgS2SModifyCoin :public LMsgSC
 		TYPE_DESC,
 	};
 
-	LMsgS2SModifyCoin() :LMsgSC(MSG_S_2_S_MODIFY_COIN)
+	LMsgS2SModifyCoin() :LMsg(MSG_S_2_S_MODIFY_COIN)
 	{
 		m_user_id = 0;
 		m_type = 0;
@@ -1263,6 +1263,227 @@ struct LMsgS2SModifyCoin :public LMsgSC
 	virtual LMsg* Clone()
 	{
 		return new LMsgS2SModifyCoin();
+	}
+};
+
+struct LMsgL2LAutoSelectCard :public LMsg
+{
+	Lint			m_user_id;
+	Lint			m_room_id;
+	Lint			m_desk_id;			
+	Lint			m_card;			
+
+
+	LMsgL2LAutoSelectCard() :LMsg(MSG_L_2_L_AUTO_SELECT_CARD)
+	{
+		m_user_id = 0;
+		m_room_id = 0;
+		m_desk_id = 0;
+		m_card = 0;
+	}
+
+	virtual bool Read(LBuff& buff)
+	{
+		buff.Read(m_user_id);
+		buff.Read(m_room_id);
+		buff.Read(m_desk_id);
+		buff.Read(m_card);
+
+		return true;
+	}
+
+	virtual bool Write(LBuff& buff)
+	{
+		buff.Write(m_user_id);
+		buff.Write(m_room_id);
+		buff.Write(m_desk_id);
+		buff.Write(m_card);
+
+		return true;
+	}
+
+	virtual LMsg* Clone()
+	{
+		return new LMsgL2LAutoSelectCard();
+	}
+};
+
+
+struct LMsgL2LMQuitRoom :public LMsg
+{
+	std::vector<int>			m_users;
+	int							m_count;
+	
+	LMsgL2LMQuitRoom() :LMsg(MSG_L_2_LM_QUIT_ROOM)
+	{
+		m_users.clear();
+		m_count = 0;
+		
+	}
+
+	virtual bool Read(LBuff& buff)
+	{
+		buff.Read(m_count);
+
+		for (int i = 0; i < m_count; ++i)
+		{
+			int user_id = 0;
+			buff.Read(user_id);
+			m_users.push_back(user_id);
+		}
+		
+		return true;
+	}
+
+	virtual bool Write(LBuff& buff)
+	{
+		m_count = m_users.size();
+		buff.Write(m_count);
+
+		for (int i = 0; i < m_users.size(); ++i)
+		{
+			buff.Write(m_users[i]);
+		}
+		
+		return true;
+	}
+
+	virtual LMsg* Clone()
+	{
+		return new LMsgL2LMQuitRoom();
+	}
+};
+
+
+struct LMsgG2SUserLogOut :public LMsg
+{
+	int			m_user_id;
+
+	LMsgG2SUserLogOut() :LMsg(MSG_G_2_S_USER_OUT)
+	{
+		m_user_id = 0;
+
+	}
+
+	virtual bool Read(LBuff& buff)
+	{
+		buff.Read(m_user_id);
+
+		return true;
+	}
+
+	virtual bool Write(LBuff& buff)
+	{
+		buff.Write(m_user_id);
+
+		return true;
+	}
+
+	virtual LMsg* Clone()
+	{
+		return new LMsgG2SUserLogOut();
+	}
+};
+
+struct LMsgLM2LUserLogOut :public LMsg
+{
+	int			m_room_id;
+	int			m_user_id;
+
+	LMsgLM2LUserLogOut() :LMsg(MSG_LM_2_L_USER_OUT)
+	{
+		m_room_id = 0;
+		m_user_id = 0;
+
+	}
+
+	virtual bool Read(LBuff& buff)
+	{
+		buff.Read(m_room_id);
+		buff.Read(m_user_id);
+
+
+		return true;
+	}
+
+	virtual bool Write(LBuff& buff)
+	{
+		buff.Write(m_room_id);
+		buff.Write(m_user_id);
+
+		return true;
+	}
+
+	virtual LMsg* Clone()
+	{
+		return new LMsgLM2LUserLogOut();
+	}
+};
+
+struct LMsgLM2LUserLogin :public LMsg
+{
+	int			m_room_id;
+	int			m_user_id;
+	int			m_gate_id;
+
+	LMsgLM2LUserLogin() :LMsg(MSG_LM_2_L_USER_LOGIN)
+	{
+		m_room_id = 0;
+		m_user_id = 0;
+		m_gate_id = 0;
+
+	}
+
+	virtual bool Read(LBuff& buff)
+	{
+		buff.Read(m_room_id);
+		buff.Read(m_user_id);
+		buff.Read(m_gate_id);
+
+		return true;
+	}
+
+	virtual bool Write(LBuff& buff)
+	{
+		buff.Write(m_room_id);
+		buff.Write(m_user_id);
+		buff.Write(m_gate_id);
+		return true;
+	}
+
+	virtual LMsg* Clone()
+	{
+		return new LMsgLM2LUserLogin();
+	}
+};
+
+struct LMsgL2LMRecyleRoom : public LMsg
+{
+	Lint			m_room_id;
+
+	LMsgL2LMRecyleRoom() :LMsg(MSG_L_2_LM_RECYLE_ROOM)
+		, m_room_id(0)
+	{
+	}
+
+	virtual bool Read(LBuff& buff)
+	{
+		buff.Read(m_room_id);
+
+		return true;
+	}
+
+	virtual bool Write(LBuff& buff)
+	{
+		buff.Write(m_room_id);
+
+	
+		return true;
+	}
+
+	virtual LMsg* Clone()
+	{
+		return new LMsgL2LMRecyleRoom();
 	}
 };
 

@@ -165,6 +165,26 @@ bool LMsgFactory::Init()
 
 	RegestMsg(new LMsgLM2GUserStatusModify());
 
+	RegestMsg(new LMsgC2SSelectCard());
+	RegestMsg(new LMsgS2CSelectCard());
+	RegestMsg(new LMsgS2CTurnDeskPos());
+	RegestMsg(new LMsgS2CDeskOverResult());
+	RegestMsg(new LMsgS2CRoomUserModify());
+	RegestMsg(new LMsgC2SQuitRoom());
+	RegestMsg(new LMsgS2CQuitRoom());
+	RegestMsg(new LMsgS2CGameOver());
+	RegestMsg(new LMsgS2CRoomInfoWhenRelogin());
+
+
+
+	RegestMsg(new LMsgS2SModifyCoin());
+	RegestMsg(new LMsgL2LAutoSelectCard());
+	RegestMsg(new LMsgL2LMQuitRoom());
+	RegestMsg(new LMsgG2SUserLogOut());
+	RegestMsg(new LMsgLM2LUserLogOut());
+	RegestMsg(new LMsgLM2LUserLogin());
+	RegestMsg(new LMsgL2LMRecyleRoom());
+
 	return true;
 }
 

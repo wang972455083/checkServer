@@ -68,6 +68,7 @@ public:
 	void			DelGateInfo(Lint id);
 	void			HanderGateUserMsg(LMsgG2GameUserMsg* msg);
 	void			HanderUserLogin(LSocketPtr sp,LMsgC2SLogin* msg);
+	void			HanderUserLogOut(LMsgG2SUserLogOut* msg);
 
 public:
 	void			SendUserMsg(LSocketPtr sp,int user_id,LMsg& msg);

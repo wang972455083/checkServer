@@ -3,8 +3,6 @@
 #include "LSingleton.h"
 #include "Work.h"
 
-
-
 class User
 {
 public:
@@ -60,6 +58,10 @@ public:
 
 	void Send(LMsgSC& msg);
 	
+	bool IsRobot();
+	
+	void SetOnline(bool online);
+	bool IsOnline();
 
 private:
 	Lint	m_user_id;
@@ -72,6 +74,7 @@ private:
 
 	bool	m_robot;
 	int		m_desk_id;
+	bool	m_online;
 
 };
 

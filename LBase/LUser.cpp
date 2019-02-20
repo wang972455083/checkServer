@@ -6,7 +6,7 @@ LUser::LUser()
 	m_user_id = 0;
 	m_sex = 1;
 	m_money = 0;
-	
+	m_scores = 0;
 }
 
 LUser::~LUser()
@@ -23,6 +23,7 @@ void LUser::Read(LBuff& buff)
 	buff.Read(m_sex);
 	buff.Read(m_headImageUrl);
 	buff.Read(m_money);
+	buff.Read(m_scores);
 }
 
 void LUser::Write(LBuff& buff)
@@ -35,6 +36,6 @@ void LUser::Write(LBuff& buff)
 	
 	buff.Write(m_headImageUrl);
 	buff.Write(m_money);
-
+	buff.Write(m_scores);
 	
 }

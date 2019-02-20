@@ -106,6 +106,7 @@ void UserManager::SaveUser(UserPtr user)
 	ss << "UPDATE user SET ";
 	ss << "Name='"<<  user->m_usert.m_name <<"',";
 	ss << "Sex='"<<  user->m_usert.m_sex <<"',";
+	ss << "Scores='" << user->m_usert.m_scores << "',";
 	ss << "HeadImageUrl='"<<  user->m_usert.m_headImageUrl<<"',";
 	ss << "Money='"<<  user->m_usert.m_money<<"' WHERE UserId='";
 	ss << user->m_usert.m_user_id << "'";
@@ -176,8 +177,17 @@ void UserManager::DelUserById(Lint user_id)
 	}
 }
 
-Lint UserManager::CreateUser(UserPtr user)
+UserPtr UserManager::CreateUser(int user_id,Lstring name)
 {
+	UserPtr user = std::make_shared<DUser>();
+	if (user == nullptr)
+		return nullptr;
+
+	user->m_usert.m_user_id = user_id;
+	user->m_usert.m_sex = 1;
+	user->m_usert.m_money = 100;
+	user->m_usert.m_name = name;
+
 	//DbTool tool;
 	MYSQL* m = gWork.GetDbSession().GetMysql();
 
@@ -188,19 +198,20 @@ Lint UserManager::CreateUser(UserPtr user)
 	}
 
 	//指定随机的id	
-	Lint nInsertID = GetRandInsertIDFromDB();
+	/*Lint nInsertID = GetRandInsertIDFromDB();
 	if (nInsertID == 0)
 	{
 		LLOG_ERROR("UserManager::RandInsertID==0");
 		return 0;
-	}
+	}*/
 
 	std::stringstream ss;
-	ss << "INSERT INTO user (UserId,Name,Sex,HeadImageUrl,Money) VALUES (";
+	ss << "INSERT INTO user (UserId,Name,Sex,HeadImageUrl,Scores,Money) VALUES (";
 	ss << "'" << user->m_usert.m_user_id << "',";
 	ss << "'" << user->m_usert.m_name << "',";
 	ss << "'" << user->m_usert.m_sex << "',";
 	ss << "'" << user->m_usert.m_headImageUrl << "',";
+	ss << "'" << user->m_usert.m_scores << "',";
 	ss << "'" << user->m_usert.m_money << "'";
 	ss << ")";
 
@@ -211,7 +222,10 @@ Lint UserManager::CreateUser(UserPtr user)
 	}
 
 	user->m_usert.m_id = (Lint)mysql_insert_id(m);
-	return user->m_usert.m_id;
+
+	AddUser(user);
+
+	return user;
 }
 
 void UserManager::AddUser(UserPtr user)

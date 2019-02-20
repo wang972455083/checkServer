@@ -125,6 +125,8 @@ void OutsideNet::CreateMsgIdTable()
 	m_msgIdTable.insert(MSG_C_2_S_QUICK_ROOM_OPT);
 	m_msgIdTable.insert(MSG_C_2_S_CREATE_DESK_ASK);
 	m_msgIdTable.insert(MSG_C_2_S_CREATE_DESK_RESPON);
+	m_msgIdTable.insert(MSG_C_2_S_SELECT_CARD);
+	m_msgIdTable.insert(MSG_C_2_S_QUIT_ROOM);
 	
 }
 

@@ -46,21 +46,16 @@ public:
 
 	void			RecycleDumpServer(Lint nLogicID);
 
-	Lint			GetUserRoomID(Lint user_id);
-
-	RoomPtr			CreateRoom(Lint Room_id);
+	RoomPtr			CreateRoom(Lint Room_id,int logic_server_id);
 	bool			DeleteRoom(int Room_id);
 	RoomPtr			GetRoom(int Room_id);
 	void			RecycleRoomID(Lint Room_id);  //回收Room_id
-	void			AddUserToRoom(Lint Room_id, Lint user_id);
-	void			DelUserToRoom(Lint Room_id, Lint user_id);
+
 	
 private:
 	std::queue<Lint>	m_FreeRoomList;
 	
 	std::queue<Lint>	m_sharevideoId;
-
-	std::map<Lint, Lint>		m_user_Room;
 	//所有创建的桌子
 	std::map<Lint, RoomPtr>		m_Rooms;
 	

@@ -1,6 +1,7 @@
 #include "User.h"
 
 
+
 User::User(int user_id,Lstring name,Lstring head_icon,int gate_server_id,bool robot)
 {
 	m_user_id = user_id;
@@ -16,6 +17,8 @@ User::User(int user_id,Lstring name,Lstring head_icon,int gate_server_id,bool ro
 	
 
 	m_desk_id = 0;
+	
+	m_online = !m_robot;
 }
 
 User::~User()
@@ -57,6 +60,9 @@ void User::SetStatus(Lint status)
 
 void User::Send(LMsgSC& msg)
 {
+	if (!m_online || m_robot)
+		return;
+
 	msg.m_user_id = m_user_id;
 
 	GateInfo* info = gWork.GetGateInfoById(m_gate_id);
@@ -71,6 +77,21 @@ void User::Send(LMsgSC& msg)
 	}
 }
 
+
+bool User::IsRobot()
+{
+	return m_robot;
+}
+
+void User::SetOnline(bool online)
+{
+	m_online = online;
+}
+
+bool User::IsOnline()
+{
+	return m_online;
+}
 
 
 
