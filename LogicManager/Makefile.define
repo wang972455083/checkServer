@@ -3,10 +3,9 @@ CC=g++
 AR=ar
 RANLIB=ranlib
 CFLAGS=  -g -O2  -D_LINUX  -DGAME_MODULE -fPIC -m64  -std=c++11 -lstdc++ -lsomelibrary  -std=c++0x  -Istdc++
-I_PROTOCOBUF=-I/opt/gameapp/protocol/include/
 ICONV=/opt/gameapp/libiconv/
-INCLUDES= -I/opt/project/CardServer/extlib/include  -I/opt/app/openssl/include -I/opt/app/curl/include/  -I/opt/app/msgpack/include  -I/opt/app/mysql/include      -I /opt/app/boost/include -I/opt/project/CardServer/LBase  -I/opt/app/boost/include -I/opt//app/libiconv/include/ -I../LBase/   -I../extlib/include/
-LIBS= -L/opt/app/curl/lib  -L/opt/app/openssl/lib  -L/opt/app/msgpack/lib  -L/opt/app/mysql/lib -L/opt/app/libiconv/lib/ -liconv -ldl  -L/opt/app/boost/lib -lboost_serialization  -lboost_thread   -lboost_system -lboost_regex -lcurl  -lmysqlclient -lcrypto  -L/opt/app/lua/lib 
+INCLUDES= -I ../extlib/include  -I ../app/openssl_include/ -I ../app/curl_include/  -I ../app/msgpack_include  -I ../app/mysql_include      -I ../app/boost_include  -I../LBase/  -I../extlib/include/
+LIBS= -L../app/curl_lib  -L../app/openssl_lib  -L../app/msgpack_lib  -L../app/mysql_lib -L../app/boost/lib -lboost_serialization  -lboost_thread   -lboost_system -lboost_regex -lcurl  -lmysqlclient -lcrypto  
 
 .SUFFIXES: .cpp .o
 .cpp.o:
@@ -22,4 +21,8 @@ LIBS= -L/opt/app/curl/lib  -L/opt/app/openssl/lib  -L/opt/app/msgpack/lib  -L/op
 .cc.o:
 	@$(CC) -fPIC $(CFLAGS) ${INCLUDES} -c -g $*.cc  -o $*.o
 	@echo '----- '$*.cc' is compiled ok!'
+
+
+
+
 
