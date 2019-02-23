@@ -26,8 +26,8 @@ void OutsideNet::RecvMsgPack(LBuffPtr recv, LSocketPtr s)
 	int user_id = 0;
 	
 	try{
-		msgpack::unpacked  unpack;
-		msgpack::unpack(&unpack, recv->Data() + recv->GetOffset(), recv->Size() - recv->GetOffset());
+		
+		msgpack::unpacked  unpack = msgpack::unpack( recv->Data() + recv->GetOffset(), recv->Size() - recv->GetOffset());
 		msgpack::object obj = unpack.get();
 		ReadMapData(obj, "m_msgId", msgid);
 
