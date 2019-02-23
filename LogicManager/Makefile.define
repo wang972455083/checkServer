@@ -4,7 +4,7 @@ AR=ar
 RANLIB=ranlib
 CFLAGS=  -g -O2  -D_LINUX  -DGAME_MODULE -fPIC -m64  -std=c++11 -lstdc++ -lsomelibrary  -std=c++0x  -Istdc++
 ICONV=/opt/gameapp/libiconv/
-INCLUDES= -I ../extlib/include  -I ../app/openssl_include/ -I ../app/curl_include/  -I ../app/msgpack_include  -I ../app/mysql_include      -I ../app/boost_include  -I../LBase/  -I../extlib/include/
+INCLUDES= -I ../extlib/include  -I ../app/openssl_include/ -I ../app/curl_include/  -I ../app/msgpack_include/  -I ../app/mysql_include/include/      -I ../app/boost_include/  -I../LBase/  -I../extlib/include/
 LIBS= -L../app/curl_lib  -L../app/openssl_lib  -L../app/msgpack_lib  -L../app/mysql_lib -L../app/boost/lib -lboost_serialization  -lboost_thread   -lboost_system -lboost_regex -lcurl  -lmysqlclient -lcrypto  
 
 .SUFFIXES: .cpp .o
