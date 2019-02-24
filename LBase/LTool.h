@@ -326,11 +326,11 @@ inline void ReadMapValue(msgpack::object& obj, Lstring key, msgpack::object& val
  }
 
 
-#define ReadMapData(obj,key,data) ReadMapValue(obj,key,data);
+#define ReadMapData(obj,key,data) ReadMapValue(obj,Lstring(key),data);
  
 #define ReadArrayData(obj,i,key,data) ReadArrayValue(obj,i,key,data);
 
-#define WriteKeyValue(pack,key,value) pack.pack(key);pack.pack(value);
+#define WriteKeyValue(pack,key,value) pack.pack(Lstring(key));pack.pack(value);
 
 #define WriteKey(pack,data) pack.pack(data);
 
