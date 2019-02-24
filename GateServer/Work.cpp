@@ -751,8 +751,8 @@ void Work::HanderUser2GameServerMsg(LMsgG2GameUserMsg* msg)
 
 	if (msg->m_userMsgId == MSG_C_2_S_LOGIN)
 	{
-		
-		msgpack::unpacked  unpack = msgpack::unpack( msg->m_dataBuff->Data() + msg->m_dataBuff->GetOffset(),Lsize( msg->m_dataBuff->Size() - msg->m_dataBuff->GetOffset()));
+		msgpack::unpacked  unpack;
+		msgpack::unpack(unpack, msg->m_dataBuff->Data() + msg->m_dataBuff->GetOffset(),Lsize( msg->m_dataBuff->Size() - msg->m_dataBuff->GetOffset()));
 		msgpack::object obj = unpack.get();
 		int user_id = 0;
 
