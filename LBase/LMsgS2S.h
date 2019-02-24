@@ -718,8 +718,8 @@ struct LMsgG2LMUserMsg :public LMsg
 
 		try {
 			
-			msgpack::unpacked  unpack;
-			msgpack::unpack(unpack,buff.Data() + buff.GetOffset(), Lsize(buff.Size() - buff.GetOffset()));
+			
+			msgpack::unpacked  unpack = msgpack::unpack(buff.Data() + buff.GetOffset(), Lsize(buff.Size() - buff.GetOffset()));
 			msgpack::object obj = unpack.get();
 
 			m_userMsg = LMsgFactory::Instance().CreateMsg(m_userMsgId);

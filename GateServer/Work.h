@@ -36,7 +36,7 @@ public:
 	void			HanderUserKick(LMsgKick* msg);
 	//处理LogicManager同步的Logic消息
 	void			HanderLogicInfo(LMsgLMG2GateLogicInfo* msg);
-	void Work::HanderGameServerInfo(LMsgLMG2GateGameServerInfo* msg);
+	void			HanderGameServerInfo(LMsgLMG2GateGameServerInfo* msg);
 
 public:
 	void			HanderUser2GameServerMsg(LMsgG2GameUserMsg* msg);
