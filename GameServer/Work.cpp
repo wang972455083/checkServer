@@ -302,36 +302,6 @@ void Work::HanderUserLogin(LSocketPtr sp,LMsgC2SLogin* msg)
 	send.m_sex = user->m_usert.m_sex;
 	send.m_money = user->m_usert.m_money;
 
-
-	/*msgpack::sbuffer buffer;
-	msgpack::packer<msgpack::sbuffer> pac(&buffer);
-
-	send.Write(pac);
-
-	int size = buffer.size();
-	unsigned char tmpdata[100];
-	memcpy(tmpdata, buffer.data(), size);
-	tmpdata[size] = '\0';
-
-	LLOG_ERROR("Message Not Handle =  %s", tmpdata);
-	LBuffPtr data;
-	data.reset(new LBuff());
-	data->Write(buffer.data(), buffer.size());
-	data->Write('\0');
-	
-
-
-
-	msgpack::unpacked  unpack;
-	msgpack::unpack(&unpack, data->Data() + data->GetOffset(), data->Size() - data->GetOffset());
-	msgpack::object obj = unpack.get();
-	int test = 0;
-	//必须有，如果没有则报错
-	ReadMapData(obj, "m_user_id", test);
-	ReadMapData(obj, "m_money", test);
-	*/
-
-
 	SendUserMsg(sp, user_id, send);
 	
 }

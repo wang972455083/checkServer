@@ -752,7 +752,7 @@ void Work::HanderUser2GameServerMsg(LMsgG2GameUserMsg* msg)
 	if (msg->m_userMsgId == MSG_C_2_S_LOGIN)
 	{
 		
-		msgpack::unpacked  unpack = msgpack::unpack( msg->m_dataBuff->Data() + msg->m_dataBuff->GetOffset(), msg->m_dataBuff->Size() - msg->m_dataBuff->GetOffset());
+		msgpack::unpacked  unpack = msgpack::unpack( msg->m_dataBuff->Data() + msg->m_dataBuff->GetOffset(),Lsize( msg->m_dataBuff->Size() - msg->m_dataBuff->GetOffset()));
 		msgpack::object obj = unpack.get();
 		int user_id = 0;
 
@@ -766,37 +766,7 @@ void Work::HanderUser2GameServerMsg(LMsgG2GameUserMsg* msg)
 		
 		gGateUserManager.Login(user, user_id);
 	}
-	else if (msg->m_userMsgId == MSG_C_2_S_TEST)
-	{
-		/*LMsg* m_userMsg = LMsgFactory::Instance().CreateMsg(userMsg->m_userMsgId);
-		if (m_userMsg)
-		{
-			m_userMsg->Read(obj);
-		}
-		
-		LMsgC2STest* test = (LMsgC2STest*)m_userMsg;
-
-		LMsgS2CTest send;
-		send.m_user_id = test->m_user_id;
-		for (int i = 0; i < test->m_users.size();++i)
-		{
-			send.m_users.push_back(test->m_users[i]);
-
-			send.m_desk.m_users.push_back(test->m_users[i]);
-		}
-
-		msgpack::sbuffer buffer;
-		msgpack::packer<msgpack::sbuffer> pac(&buffer);
-		send.Write(pac);
-
-		msgpack::unpacked  unpack;
-		msgpack::unpack(&unpack, buffer.data(), buffer.size());
-
-		msgpack::object  obj = unpack.get();
-		cout << obj;
-
-		msg->m_sp->Send(send.GetSendBuff());*/
-	}
+	
 	SendToGameServer(user, msg);
 }
 
@@ -815,49 +785,6 @@ void Work::HanderGameServer2UserMsg(LMsgGame2GUserMsg* msg)
 
 void Work::HanderUser2LogicManagerServerMsg(LMsgG2LMUserMsg* msg)
 {
-	
-
-	/*if (msg->m_userMsgId == MSG_C_2_S_DESK_OPT)
-	{
-		//LMsgC2SDeskOpt* opt = (LMsgC2SDeskOpt*)(msg->m_userMsg);
-
-		
-			LBuffPtr buff = msg->m_dataBuff;
-			msgpack::unpacked  unpack;
-			msgpack::unpack(&unpack, buff->Data() + buff->GetOffset(), buff->Size() - buff->GetOffset());
-			msgpack::object obj = unpack.get();
-
-			
-			LMsg* user_msg = LMsgFactory::Instance().CreateMsg(msg->m_userMsgId);
-			if (user_msg)
-			{
-				user_msg->Read(obj);
-			}
-			else
-			{
-				LLOG_ERROR("LMsgG2LMUserMsg read msgId not exiest %d", msg->m_userMsgId);
-			}
-
-
-			LMsgC2SDeskOpt* opt = (LMsgC2SDeskOpt*)user_msg;
-
-		LMsgS2CDeskOpt send;
-		send.m_user_id = 1;
-		send.m_type = 1;
-
-		send.m_desk.m_desk_id = 1;
-		send.m_logic_server_id = 10;
-
-		for (int i = 0; i < opt->m_list.size(); i++)
-		{
-			send.m_list.push_back(opt->m_list[i]);
-		}
-
-		msg->m_sp->Send(send.GetSendBuff());
-		return;
-	}*/
-
-	//**************************************
 
 	LLOG_ERROR("HanderUser2LogicManagerServerMsg");
 	m_logicManager->Send(msg->GetSendBuff());

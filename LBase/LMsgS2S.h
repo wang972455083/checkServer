@@ -190,7 +190,7 @@ struct LMsgG2LUserMsg :public LMsg
 
 		try {
 			
-			msgpack::unpacked  unpack = msgpack::unpack(buff.Data() + buff.GetOffset(), buff.Size() - buff.GetOffset());
+			msgpack::unpacked  unpack = msgpack::unpack(buff.Data() + buff.GetOffset(), Lsize(buff.Size() - buff.GetOffset()));
 			msgpack::object obj = unpack.get();
 
 			m_userMsg = LMsgFactory::Instance().CreateMsg(m_userMsgId);
@@ -262,84 +262,6 @@ struct LMsgL2GUserMsg : public LMsg
 		return new LMsgL2GUserMsg();
 	}
 };
-
-//////////////////////////////////////////////////////////////////////////
-//gate 发送玩家消息 到 match
-//struct LMsgG2MUserMsg :public LMsg
-//{
-//	/*
-//	以下字段由gate进行填充
-//	*/
-//	Llong			m_userGateId;  //user的gateid
-//	Lstring			m_ip;
-//	LBuffPtr		m_dataBuff;
-//
-//	/*
-//	以下字段由read中解析
-//	*/
-//	Lint			m_userMsgId;
-//	LMsg*			m_userMsg;
-//
-//	LMsgG2MUserMsg() :LMsg(MSG_G_2_M_USER_MSG)
-//	{
-//		m_userMsgId = 0;
-//		m_userMsg = NULL;
-//		m_userGateId = 0;
-//	}
-//
-//	virtual~LMsgG2MUserMsg()
-//	{
-//		if (m_userMsg)
-//			delete m_userMsg;
-//	}
-//
-//	virtual bool Read(LBuff& buff)
-//	{
-//		buff.Read(m_userGateId);
-//		buff.Read(m_userMsgId);
-//		buff.Read(m_ip);
-//
-//		int msgid = MSG_ERROR_MSG;
-//		try
-//		{
-//			msgpack::unpacked  unpack;
-//			msgpack::unpack(&unpack, buff.Data() + buff.GetOffset(), buff.Size() - buff.GetOffset());
-//			msgpack::object obj = unpack.get();
-//
-//			ReadMapData(obj, "m_msgId", msgid);
-//			m_userMsg = LMsgFactory::Instance().CreateMsg(m_userMsgId);
-//			if (m_userMsg)
-//			{
-//				m_userMsg->Read(obj);
-//			}
-//			else
-//			{
-//				LLOG_ERROR("LMsgG2LUserMsg read msgId not exiest %d", m_userMsgId);
-//			}
-//		}
-//		catch (...)
-//		{
-//			LLOG_ERROR("MSG_G_2_L_USER_MSG::RecvMsgPack error");
-//		}
-//
-//		return true;
-//	}
-//
-//	virtual bool Write(LBuff& buff)
-//	{
-//		buff.Write(m_userGateId);
-//		buff.Write(m_userMsgId);
-//		buff.Write(m_ip);
-//		buff.Write(m_dataBuff->Data() + m_dataBuff->GetOffset(), m_dataBuff->Size() - m_dataBuff->GetOffset());
-//		return true;
-//	}
-//
-//	virtual LMsg* Clone()
-//	{
-//		return new LMsgG2MUserMsg();
-//	}
-//};
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -659,77 +581,6 @@ struct LMsgLMG2GateGameServerInfo :public LMsg
 	}
 }; 
 
-/*
-struct LMsgG2GameUserMsg :public LMsg
-{
-	
-	Lint			m_userMsgId;
-	Lstring			m_ip;
-	Lint            m_userDataID; //用户数据库id,用于比赛场托管逻辑处理
-	LBuffPtr		m_dataBuff;
-	LMsg*			m_userMsg;
-
-	LMsgG2GameUserMsg() :LMsg(MSG_G_2_GAME_USER_MSG), m_userMsg(NULL)
-		, m_userMsgId(0)
-		, m_userDataID(0)
-	{
-	}
-
-	virtual~LMsgG2GameUserMsg()
-	{
-		if (m_userMsg)
-			delete m_userMsg;
-	}
-
-	virtual bool Read(LBuff& buff)
-	{
-		
-		buff.Read(m_userMsgId);
-		buff.Read(m_ip);
-		buff.Read(m_userDataID);
-
-		int msgid = MSG_ERROR_MSG;
-
-		try {
-			msgpack::unpacked  unpack;
-			msgpack::unpack(&unpack, buff.Data() + buff.GetOffset(), buff.Size() - buff.GetOffset());
-			msgpack::object obj = unpack.get();
-
-			ReadMapData(obj, "m_msgId", msgid);
-			m_userMsg = LMsgFactory::Instance().CreateMsg(m_userMsgId);
-			if (m_userMsg)
-			{
-				m_userMsg->Read(obj);
-			}
-			else
-			{
-				LLOG_ERROR("LMsgG2LUserMsg read msgId not exiest %d", m_userMsgId);
-			}
-		}
-		catch (...)
-		{
-			LLOG_ERROR("MSG_G_2_L_USER_MSG::RecvMsgPack error");
-		}
-
-		return true;
-	}
-
-	virtual bool Write(LBuff& buff)
-	{
-		
-		buff.Write(m_userMsgId);
-		buff.Write(m_ip);
-		buff.Write(m_userDataID);
-		buff.Write(m_dataBuff->Data() + m_dataBuff->GetOffset(), m_dataBuff->Size() - m_dataBuff->GetOffset());
-		return true;
-	}
-
-	virtual LMsg* Clone()
-	{
-		return new LMsgG2GameUserMsg();
-	}
-};*/
-
 
 struct LMsgG2GameUserMsg :public LMsg
 {
@@ -761,7 +612,7 @@ struct LMsgG2GameUserMsg :public LMsg
 
 		try {
 			
-			msgpack::unpacked  unpack = msgpack::unpack(buff.Data() + buff.GetOffset(), buff.Size() - buff.GetOffset());
+			msgpack::unpacked  unpack = msgpack::unpack(buff.Data() + buff.GetOffset(), Lsize(buff.Size() - buff.GetOffset()));
 			msgpack::object obj = unpack.get();
 
 			m_userMsg = LMsgFactory::Instance().CreateMsg(m_userMsgId);
@@ -865,7 +716,7 @@ struct LMsgG2LMUserMsg :public LMsg
 
 		try {
 			
-			msgpack::unpacked  unpack  = msgpack::unpack( buff.Data() + buff.GetOffset(), buff.Size() - buff.GetOffset());
+			msgpack::unpacked  unpack  = msgpack::unpack( buff.Data() + buff.GetOffset(), Lsize(buff.Size() - buff.GetOffset()));
 			msgpack::object obj = unpack.get();
 
 			m_userMsg = LMsgFactory::Instance().CreateMsg(m_userMsgId);
