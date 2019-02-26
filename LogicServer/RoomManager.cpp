@@ -25,7 +25,7 @@ void Room::Clear()
 	m_room_status = 0;
 	m_room_user.clear();
 	m_room_status = RS_WAIT;
-	m_new_desk_id = 0;
+	m_new_desk_id = 1000;
 }
 
 bool Room::AddUser(LUserPtr user)
@@ -217,15 +217,39 @@ LDeskPtr	Room::CreateDesk(int star)
 	if (star <= 0)
 		return nullptr;
 
-	m_new_desk_id++;
-	LDeskPtr desk = std::make_shared<Desk>();
+	int desk_type = GetDeskType(star);
+	LDeskPtr desk = DeskFactory::Instance().GetDesk(3);
 	desk->SetRoom(this);
 	desk->m_desk_id = m_new_desk_id;
 	desk->m_star = star;
 
+	m_new_desk_id++;
+
 	m_runing_desks[desk->m_desk_id] = desk;
 
 	return desk;
+}
+
+int Room::GetDeskType(int star)
+{
+	
+	if (star >=3 )
+	{
+		int rd = rand() % 4;
+		return rd+1;
+	}
+	else if(star>=2)
+	{
+		int rd = rand() % 3;
+		return rd + 1;
+	}
+	else
+	{
+		int rd = rand() % 2;
+		return rd + 1;
+	}
+
+	return 1;
 }
 
 LDeskPtr Room::GetDesk(int desk_id)

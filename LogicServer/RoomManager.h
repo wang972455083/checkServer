@@ -75,6 +75,7 @@ public:
 
 public:
 	LDeskPtr			CreateDesk(int star);
+	int					GetDeskType(int star);
 	LDeskPtr			GetDesk(int desk_id);
 	void				DestoryDesk(int desk_id);
 

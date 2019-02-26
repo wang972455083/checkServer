@@ -40,51 +40,109 @@ public:
 	int						m_select_left_time;
 	int						m_type;
 	Room*					m_room;
+	int						m_xitong_card;
+	int						m_xitong_stars;  //系统奖励
 public:
 
-	Desk();
+	Desk(int type);
+	virtual ~Desk();
 	void SetRoom(Room* m_room);
 	bool AddUser(int user_id, bool robot);
 
 public :
 	void Tick();
-	int GetRandCard();
-	
-	bool StartDesk();
-	bool IsFull();
-	bool IsEnd();
+	int GetRandCard();  
+	vector<int> GetRandTwoCard();
 	bool IsCardType(Lint card);
 	void FillDeskMsg(MsgDesk& send);
-
-	void TurnPos();
-
-	std::shared_ptr<DeskUser>	GetDeskUser(int user_id);
 	void DeskBrocast(LMsgSC& msg);
-	bool EndDesk(std::map<int,int>& map_stars);
+	std::shared_ptr<DeskUser>	GetDeskUser(int user_id);
+	bool IsFull();
+	void TurnPos();
+	bool IsEnd();
+	bool SelectCard(int user_id, int card);
+	void CheckTurnPos(std::shared_ptr<DeskUser> user);
+	int GetDeskType() { return m_type; }
+	int GetLoseCardByTargetCatd(int target_card);
+	bool StartDesk();
+public:
 
 
-	virtual bool SelectCard(int user_id,int card);
-	virtual void CheckTurnPos(std::shared_ptr<DeskUser> user);
-
-	int GetWinner()
-	{
-
-	}
-
+	virtual void SetTipCard();
+	virtual bool EndDesk(std::map<int, int>& map_stars) = 0;
 };
 
 typedef std::shared_ptr<Desk>	LDeskPtr;
 
-class NormalDesk : public Desk
+class TypeOneDesk : public Desk
 {
 public:
-	//NormalDesk();
+	TypeOneDesk() :Desk(DT_FIRST_TYPE)
+	{
 
-	void GetResult();
-	//bool SelectCard(Lint user_id, Lint card);
+	}
+	~TypeOneDesk()
+	{
+
+	}
+
+
+	bool EndDesk(std::map<int, int>& map_stars);
+};
+
+class TypeSecondDesk : public Desk
+{
+public:
+	TypeSecondDesk() :Desk(DT_SECOND_TYPE)
+	{
+		m_xitong_stars = m_star;
+	}
+	~TypeSecondDesk()
+	{
+
+	}
+
+	void SetTipCard();
+	bool EndDesk(std::map<int, int>& map_stars);
+
+private:
+	int m_xitong_stars;  //系统奖励
 };
 
 
+class TypeThirdDesk : public Desk
+{
+public:
+	TypeThirdDesk() :Desk(DT_THIRD_TYPE)
+	{
+		m_xitong_stars = m_star;
+	}
+	~TypeThirdDesk()
+	{
+
+	}
+
+	void SetTipCard();
+	bool EndDesk(std::map<int, int>& map_stars);
+
+};
+
+class TypeFourthDesk : public Desk
+{
+public:
+	TypeFourthDesk() :Desk(DT_FOURTH_TYPE)
+	{
+		m_xitong_stars = m_star;
+	}
+	~TypeFourthDesk()
+	{
+
+	}
+
+	void SetTipCard();
+	bool EndDesk(std::map<int, int>& map_stars);
+	
+};
 ;
 class DeskFactory: public LSingleton<DeskFactory>
 {
@@ -92,5 +150,5 @@ public :
 	bool Init();
 	bool Final();
 
-	LDeskPtr GetDesk(DeskType type);
+	LDeskPtr GetDesk(int type);
 };

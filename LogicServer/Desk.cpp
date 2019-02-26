@@ -6,6 +6,7 @@ DeskUser::DeskUser()
 	Clear();
 }
 
+
 void DeskUser::Clear()
 {
 	m_user_id = 0;
@@ -17,7 +18,7 @@ void DeskUser::Clear()
 }
 
 
-Desk::Desk()
+Desk::Desk(int type)
 {
 	m_desk_id = 0;
 	m_star = 0;
@@ -26,9 +27,16 @@ Desk::Desk()
 	m_cur_pos = 0;
 	m_select_left_time = 0;
 
-	m_type = DT_COMMON;
+	m_type = type;
 
 	m_room = nullptr;
+	m_xitong_card = 0;
+	m_xitong_stars = 0;
+}
+
+Desk::~Desk()
+{
+
 }
 
 void Desk::SetRoom(Room* room)
@@ -114,39 +122,22 @@ int Desk::GetRandCard()
 	return card ;
 }
 
-bool Desk::StartDesk()
+vector<int> Desk::GetRandTwoCard()
 {
-	
-	m_cur_pos++;
-	m_select_left_time = MAX_SELECT_TIME;
-	
+	int rand_card = GetRandCard();
 
-	int nRand = rand() % 2;
-	
-	if (nRand)
+	vector<int>	cards;
+	for (int i = 1; i < 4; ++i)
 	{
-		for(int i=0;i<m_parters.size();++i)
+		if (i != rand_card)
 		{
-			m_parters[i]->m_pos = i + 1;
+			cards.push_back(i);
 		}
 	}
-	else
-	{
-		for (int i = 0; i < m_parters.size(); ++i)
-		{
-			m_parters[i]->m_pos = m_parters.size()-i;
-		}
-	}
-	
 
-	LMsgS2CNoticeCreateDeskResult send;
-	send.m_result = 0;
-	FillDeskMsg(send.m_desk);
-
-	DeskBrocast(send);
-
-	return true;
+	return cards;
 }
+
 
 
 bool Desk::IsFull()
@@ -206,6 +197,41 @@ std::shared_ptr<DeskUser>	Desk::GetDeskUser(int user_id)
 	}
 
 	return nullptr;
+}
+
+bool Desk::StartDesk()
+{
+
+	m_cur_pos++;
+	m_select_left_time = MAX_SELECT_TIME;
+
+
+	int nRand = rand() % 2;
+
+	if (nRand)
+	{
+		for (int i = 0; i < m_parters.size(); ++i)
+		{
+			m_parters[i]->m_pos = i + 1;
+		}
+	}
+	else
+	{
+		for (int i = 0; i < m_parters.size(); ++i)
+		{
+			m_parters[i]->m_pos = m_parters.size() - i;
+		}
+	}
+
+	SetTipCard();
+
+	LMsgS2CNoticeCreateDeskResult send;
+	send.m_result = 0;
+	FillDeskMsg(send.m_desk);
+
+	DeskBrocast(send);
+
+	return true;
 }
 
 bool Desk::SelectCard(int user_id, int card)
@@ -274,117 +300,7 @@ bool Desk::SelectCard(int user_id, int card)
 	return (result == 0);
 }
 
-bool Desk::EndDesk(std::map<int, int>& map_stars)
-{
-	if (m_room == nullptr)
-		return false;
 
-	std::shared_ptr<DeskUser> user1 = m_parters[0];
-	std::shared_ptr<DeskUser> user2 = m_parters[1];
-
-	LMsgS2CDeskOverResult send;
-	send.m_desk_id = m_desk_id;
-
-	if (user1->m_select_card == user2->m_select_card)
-	{
-		//平局
-		send.m_winner = 0;
-
-		MsgUserResult result;
-		result.m_user_id = user1->m_user_id;
-		result.m_select_card = user1->m_select_card;
-		result.m_stars = 0;
-		send.m_results.push_back(result);
-		
-		
-	
-		result.m_user_id = user2->m_user_id;
-		result.m_select_card = user2->m_select_card;
-		result.m_stars = 0;
-		send.m_results.push_back(result);
-		
-
-	}
-	else if (user1->m_select_card == CARD_BU && user2->m_select_card == CARD_SHI_TOU)
-	{
-		send.m_winner = user1->m_user_id;
-
-		int star = 0;
-
-		MsgUserResult result;
-		result.m_user_id = user1->m_user_id;
-		result.m_select_card = user1->m_select_card;
-		result.m_stars = m_star;
-		send.m_results.push_back(result);
-
-		result.m_user_id = user2->m_user_id;
-		result.m_select_card = user2->m_select_card;
-		result.m_stars = -m_star;
-		send.m_results.push_back(result);
-	}
-	else if (user1->m_select_card == CARD_SHI_TOU && user2->m_select_card == CARD_BU)
-	{
-		send.m_winner = user2->m_user_id;
-
-		MsgUserResult result;
-		result.m_user_id = user2->m_user_id;
-		result.m_select_card = user2->m_select_card;
-		result.m_stars = m_star;
-
-		send.m_results.push_back(result);
-
-		result.m_user_id = user1->m_user_id;
-		result.m_select_card = user1->m_select_card;
-		result.m_stars = -m_star;
-		send.m_results.push_back(result);
-	}
-	else
-	{
-		if (user1->m_select_card > user2->m_select_card)
-		{
-			//user1
-			send.m_winner = user1->m_user_id;
-
-			MsgUserResult result;
-			result.m_user_id = user1->m_user_id;
-			result.m_select_card = user1->m_select_card;
-			result.m_stars = m_star;
-
-			send.m_results.push_back(result);
-
-			result.m_user_id = user2->m_user_id;
-			result.m_select_card = user2->m_select_card;
-			result.m_stars = -m_star;
-			send.m_results.push_back(result);
-		}
-		else
-		{
-			//user2
-			send.m_winner = user2->m_user_id;
-
-			MsgUserResult result;
-			result.m_user_id = user2->m_user_id;
-			result.m_select_card = user2->m_select_card;
-			result.m_stars = m_star;
-
-			send.m_results.push_back(result);
-
-			result.m_user_id = user1->m_user_id;
-			result.m_select_card = user1->m_select_card;
-			result.m_stars = -m_star;
-			send.m_results.push_back(result);
-		}
-	}
-
-	for (int i = 0; i < send.m_results.size(); ++i)
-	{
-		map_stars[send.m_results[i].m_user_id] = send.m_results[i].m_stars;
-	}
-
-	DeskBrocast(send);
-
-	return true;
-}
 
 void Desk::CheckTurnPos(std::shared_ptr<DeskUser> user)
 {
@@ -429,47 +345,449 @@ void Desk::TurnPos()
 	DeskBrocast(send);
 }
 
-
-
-//NormalDesk::NormalDesk()
-//{
-
-//}
-
-void NormalDesk::GetResult()
+int Desk::GetLoseCardByTargetCatd(int target_card)
 {
-	/*if (!IsEnd())
-		return;
+	switch (target_card)
+	{
+	case CARD_BU:
+		return CARD_SHI_TOU;
+		break;
+	case CARD_SHI_TOU:
+		return CARD_JIAN_DAO;
+		break;
+	case CARD_JIAN_DAO:
+		return CARD_BU;
+	}
 
-	Partener p1 = m_parters[0];
-	Partener p2 = m_parters[1];
+	return 0;
+}
 
-	if (p1.m_select_card == p2.m_select_card)
+void Desk::SetTipCard()
+{
+
+}
+
+
+bool TypeOneDesk::EndDesk(std::map<int, int>& map_stars)
+{
+	if (m_room == nullptr)
+		return false;
+
+	std::shared_ptr<DeskUser> user1 = m_parters[0];
+	std::shared_ptr<DeskUser> user2 = m_parters[1];
+
+	LMsgS2CDeskOverResult send;
+	send.m_desk_id = m_desk_id;
+
+	if (user1->m_select_card == user2->m_select_card)
 	{
 		//平局
+		send.m_winner = 0;
+
+		MsgUserResult result;
+		result.m_user_id = user1->m_user_id;
+		result.m_select_card = user1->m_select_card;
+		result.m_stars = 0;
+		send.m_results.push_back(result);
+
+
+
+		result.m_user_id = user2->m_user_id;
+		result.m_select_card = user2->m_select_card;
+		result.m_stars = 0;
+		send.m_results.push_back(result);
+
+
+	}
+	else if(GetLoseCardByTargetCatd(user1->m_select_card) == user2->m_select_card)
+	{
+		send.m_winner = user1->m_user_id;
+
+		int star = 0;
+
+		MsgUserResult result;
+		result.m_user_id = user1->m_user_id;
+		result.m_select_card = user1->m_select_card;
+		result.m_stars = m_star;
+		send.m_results.push_back(result);
+
+		result.m_user_id = user2->m_user_id;
+		result.m_select_card = user2->m_select_card;
+		result.m_stars = -m_star;
+		send.m_results.push_back(result);
+	}
+	else 
+	{
+		send.m_winner = user2->m_user_id;
+
+		MsgUserResult result;
+		result.m_user_id = user2->m_user_id;
+		result.m_select_card = user2->m_select_card;
+		result.m_stars = m_star;
+
+		send.m_results.push_back(result);
+
+		result.m_user_id = user1->m_user_id;
+		result.m_select_card = user1->m_select_card;
+		result.m_stars = -m_star;
+		send.m_results.push_back(result);
+	}
+	
+
+	for (int i = 0; i < send.m_results.size(); ++i)
+	{
+		map_stars[send.m_results[i].m_user_id] = send.m_results[i].m_stars;
+	}
+
+	DeskBrocast(send);
+
+	return true;
+}
+
+
+void TypeSecondDesk::SetTipCard()
+{
+	//系统为位置为1的玩家提示一张牌
+	m_xitong_card = GetRandCard();
+	for (int i = 0; i < m_parters.size(); ++i)
+	{
+		if (m_parters[i]->m_pos == POS_1)
+		{
+			m_parters[i]->m_tip_card = (CARD_TYPE)m_xitong_card;
+		}
+	}
+}
+
+bool TypeSecondDesk::EndDesk(std::map<int, int>& map_stars)
+{
+	if (!IsFull())
+		return false;
+
+	std::shared_ptr<DeskUser> user_pos1 = m_parters[0];
+	std::shared_ptr<DeskUser> user_pos2 = m_parters[1];
+	if (user_pos1->m_pos != POS_1)
+	{
+		user_pos1 = m_parters[1];
+		user_pos2 = m_parters[0];
+	}
+	
+	LMsgS2CDeskOverResult send;
+	send.m_desk_id = m_desk_id;
+
+	if (user_pos1->m_select_card == user_pos2->m_select_card)
+	{
+		//平局
+		send.m_winner = 0;
+
+		MsgUserResult result;
+		result.m_user_id = user_pos1->m_user_id;
+		result.m_select_card = user_pos1->m_select_card;
+		result.m_stars = 0;
+		send.m_results.push_back(result);
+
+
+
+		result.m_user_id = user_pos2->m_user_id;
+		result.m_select_card = user_pos2->m_select_card;
+		result.m_stars = 0;
+		send.m_results.push_back(result);
+
+
+	}
+	else if (GetLoseCardByTargetCatd(user_pos1->m_select_card) == user_pos2->m_select_card)
+	{
+		send.m_winner = user_pos1->m_user_id;
+
+		int star = m_star;
+		if (user_pos1->m_select_card == user_pos1->m_tip_card)
+		{
+			star += m_xitong_stars;
+		}
+
+		MsgUserResult result;
+		result.m_user_id = user_pos1->m_user_id;
+		result.m_select_card = user_pos1->m_select_card;
+		result.m_stars = m_star;
+		send.m_results.push_back(result);
+
+		result.m_user_id = user_pos2->m_user_id;
+		result.m_select_card = user_pos2->m_select_card;
+		result.m_stars = -m_star;
+		send.m_results.push_back(result);
 	}
 	else
 	{
-		if (p1.m_select_card == CARD_BU && p2.m_select_card == CARD_SHI_TOU)
+		send.m_winner = user_pos2->m_user_id;
+
+		MsgUserResult result;
+		result.m_user_id = user_pos2->m_user_id;
+		result.m_select_card = user_pos2->m_select_card;
+		result.m_stars = m_star;
+
+		send.m_results.push_back(result);
+
+		result.m_user_id = user_pos1->m_user_id;
+		result.m_select_card = user_pos1->m_select_card;
+		result.m_stars = -m_star;
+		send.m_results.push_back(result);
+	}
+
+
+	for (int i = 0; i < send.m_results.size(); ++i)
+	{
+		map_stars[send.m_results[i].m_user_id] = send.m_results[i].m_stars;
+	}
+
+	DeskBrocast(send);
+
+	return true;
+}
+
+
+void TypeThirdDesk::SetTipCard()
+{
+	//系统为每个玩家提示一张牌，并且相同
+	m_xitong_card = GetRandCard();
+	for (int i = 0; i < m_parters.size(); ++i)
+	{
+		m_parters[i]->m_tip_card = (CARD_TYPE)m_xitong_card;
+		
+	}
+}
+
+bool TypeThirdDesk::EndDesk(std::map<int, int>& map_stars)
+{
+	if (!IsFull())
+		return false;
+
+	std::shared_ptr<DeskUser> user1 = m_parters[0];
+	std::shared_ptr<DeskUser> user2 = m_parters[1];
+
+
+	LMsgS2CDeskOverResult send;
+	send.m_desk_id = m_desk_id;
+
+	if (user1->m_select_card == user2->m_select_card)
+	{
+		//平局
+		send.m_winner = 0;
+
+		int star = 0;
+		if (user1->m_select_card == m_xitong_card)
 		{
-			//p1赢
-		}
-		else if (p1.m_select_card == CARD_SHI_TOU && p2.m_select_card == CARD_BU)
-		{
-			//p2赢
+			star = m_star / 2;
 		}
 		else
 		{
-			if (p1.m_select_card > p2.m_select_card)
-			{
-				//p1赢
-			}
-			else
-			{
-				//p2赢
-			}
+			star = -(m_star / 2);
 		}
-	}*/
+
+		MsgUserResult result;
+		result.m_user_id = user1->m_user_id;
+		result.m_select_card = user1->m_select_card;
+		result.m_stars = star;
+		send.m_results.push_back(result);
+
+
+
+		result.m_user_id = user2->m_user_id;
+		result.m_select_card = user2->m_select_card;
+		result.m_stars = star;
+		send.m_results.push_back(result);
+
+
+	}
+	else if (GetLoseCardByTargetCatd(user1->m_select_card) == user2->m_select_card)
+	{
+		send.m_winner = user1->m_user_id;
+
+		int star = m_star;
+		if (user1->m_select_card == m_xitong_card || user2->m_select_card == m_xitong_card)
+		{
+			star += m_xitong_stars;
+		}
+
+		MsgUserResult result;
+		result.m_user_id = user1->m_user_id;
+		result.m_select_card = user1->m_select_card;
+		result.m_stars = star;
+		send.m_results.push_back(result);
+
+		result.m_user_id = user2->m_user_id;
+		result.m_select_card = user2->m_select_card;
+		result.m_stars = -m_star;
+		send.m_results.push_back(result);
+	}
+	else
+	{
+		send.m_winner = user2->m_user_id;
+
+		int star = m_star;
+		if (user1->m_select_card == m_xitong_card || user2->m_select_card == m_xitong_card)
+		{
+			star += m_xitong_stars;
+		}
+
+		MsgUserResult result;
+		result.m_user_id = user2->m_user_id;
+		result.m_select_card = user2->m_select_card;
+		result.m_stars = star;
+
+		send.m_results.push_back(result);
+
+		result.m_user_id = user1->m_user_id;
+		result.m_select_card = user1->m_select_card;
+		result.m_stars = -m_star;
+		send.m_results.push_back(result);
+	}
+
+
+	for (int i = 0; i < send.m_results.size(); ++i)
+	{
+		map_stars[send.m_results[i].m_user_id] = send.m_results[i].m_stars;
+	}
+
+	DeskBrocast(send);
+
+	return true;
+}
+
+
+void TypeFourthDesk::SetTipCard()
+{
+	//系统为每个玩家提示一张牌，并且相同
+	vector<int> cards = GetRandTwoCard();
+	if (cards.size() != m_parters.size())
+		return;
+
+	for (int i = 0; i < m_parters.size(); ++i)
+	{
+		m_parters[i]->m_tip_card = (CARD_TYPE)cards[i];
+
+	}
+}
+
+bool TypeFourthDesk::EndDesk(std::map<int, int>& map_stars)
+{
+	if (!IsFull())
+		return false;
+
+	std::shared_ptr<DeskUser> user1 = m_parters[0];
+	std::shared_ptr<DeskUser> user2 = m_parters[1];
+
+
+	LMsgS2CDeskOverResult send;
+	send.m_desk_id = m_desk_id;
+
+	if (user1->m_select_card == user2->m_select_card)
+	{
+		//平局
+		send.m_winner = 0;
+
+		int star1 = 0;
+		int star2 = 0;
+		if (user1->m_select_card == user1->m_tip_card)
+		{
+			star1 = m_xitong_stars / 2;
+		}
+		else if(user2->m_select_card == user2->m_tip_card)
+		{
+			star2 = m_xitong_stars / 2;
+		}
+
+		MsgUserResult result;
+		result.m_user_id = user1->m_user_id;
+		result.m_select_card = user1->m_select_card;
+		result.m_stars = star1;
+		send.m_results.push_back(result);
+
+
+
+		result.m_user_id = user2->m_user_id;
+		result.m_select_card = user2->m_select_card;
+		result.m_stars = star2;
+		send.m_results.push_back(result);
+
+
+	}
+	else if (GetLoseCardByTargetCatd(user1->m_select_card) == user2->m_select_card)
+	{
+		send.m_winner = user1->m_user_id;
+
+		int star1 = 0;
+		int star2 = 0;
+
+		if (user1->m_select_card == user1->m_tip_card && user2->m_select_card == user2->m_tip_card)
+		{
+			star1 = m_xitong_card;
+			star2 = m_xitong_card / 2;
+		}
+		else if (user1->m_select_card != user1->m_tip_card && user2->m_select_card != user2->m_tip_card)
+		{
+			star1 = m_star;
+			star2 = -m_star;
+		}
+		else
+		{
+			star1 = m_star + m_xitong_card / 2;
+			star2 = -m_star;
+		}
+
+		MsgUserResult result;
+		result.m_user_id = user1->m_user_id;
+		result.m_select_card = user1->m_select_card;
+		result.m_stars = star1;
+		send.m_results.push_back(result);
+
+		result.m_user_id = user2->m_user_id;
+		result.m_select_card = user2->m_select_card;
+		result.m_stars = star2;
+		send.m_results.push_back(result);
+	}
+	else
+	{
+		send.m_winner = user2->m_user_id;
+
+		int star1 = 0;
+		int star2 = 0;
+
+		if (user1->m_select_card == user1->m_tip_card && user2->m_select_card == user2->m_tip_card)
+		{
+			star2 = m_xitong_card;
+			star1 = m_xitong_card / 2;
+		}
+		else if (user1->m_select_card != user1->m_tip_card && user2->m_select_card != user2->m_tip_card)
+		{
+			star2 = m_star;
+			star1 = -m_star;
+		}
+		else
+		{
+			star2 = m_star + m_xitong_card / 2;
+			star1 = -m_star;
+		}
+
+		MsgUserResult result;
+		result.m_user_id = user2->m_user_id;
+		result.m_select_card = user2->m_select_card;
+		result.m_stars = star2;
+		send.m_results.push_back(result);
+
+		result.m_user_id = user1->m_user_id;
+		result.m_select_card = user1->m_select_card;
+		result.m_stars = star1;
+		send.m_results.push_back(result);
+	}
+
+
+	for (int i = 0; i < send.m_results.size(); ++i)
+	{
+		map_stars[send.m_results[i].m_user_id] = send.m_results[i].m_stars;
+	}
+
+	DeskBrocast(send);
+
+	return true;
 }
 
 
@@ -483,15 +801,24 @@ bool DeskFactory::Final()
 	return true;
 }
 
-LDeskPtr DeskFactory::GetDesk(DeskType type)
+LDeskPtr DeskFactory::GetDesk(int  type)
 {
 
 	switch (type)
 	{
-	case DT_COMMON:
-		return std::make_shared<Desk>();
+	case DT_FIRST_TYPE:
+		return std::make_shared<TypeOneDesk>();
+		break;
+	case DT_SECOND_TYPE:
+		return std::make_shared<TypeSecondDesk>();
+		break;
+	case DT_THIRD_TYPE:
+		return std::make_shared<TypeThirdDesk>();
+		break;
+	case DT_FOURTH_TYPE:
+		return std::make_shared<TypeFourthDesk>();
 		break;
 	}
 	
-	return nullptr;
+	return std::make_shared<TypeOneDesk>();;
 }

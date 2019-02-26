@@ -75,7 +75,7 @@ all: $(TARGET_BIN) Makefile
 $(TARGET_BIN):$(PATS)
 	$(REMOVE) ./libs/*
 	$(COPY) $(PATS) ./libs/
-	$(CC) -o $(TARGET_BIN) $(LIB_BASE_OBJS) $(LIBS) -lpthread -fPIC -m64    -std=c++11 -lstdc++
+	$(CC) $(LIBS) -lpthread -fPIC -m64    -std=c++11 -lstdc++ -o $(TARGET_BIN) $(LIB_BASE_OBJS) 
 
 
 clean:
